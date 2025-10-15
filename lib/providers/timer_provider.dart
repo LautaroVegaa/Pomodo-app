@@ -18,6 +18,7 @@ class TimerProvider extends ChangeNotifier {
   bool _autoStartPomodoros = false;
   int _longBreakInterval = 4;
   bool _notificationsEnabled = true;
+  bool _soundEnabled = true; // 🆕 NUEVO
 
   // --- ESTADO DEL TEMPORIZADOR ---
   int _remainingTimeSeconds = 25 * 60;
@@ -50,6 +51,7 @@ class TimerProvider extends ChangeNotifier {
   bool get autoStartPomodoros => _autoStartPomodoros;
   int get longBreakInterval => _longBreakInterval;
   bool get notificationsEnabled => _notificationsEnabled;
+  bool get soundEnabled => _soundEnabled; // 🆕
 
   String get formattedTime {
     int minutes = _remainingTimeSeconds ~/ 60;
@@ -125,6 +127,14 @@ class TimerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 🆕 Nuevo setter para el sonido
+  Future<void> setSoundEnabled(bool value) async {
+    _soundEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('sound_enabled', value);
+    notifyListeners();
+  }
+
   // --- Cargar configuración guardada ---
   Future<void> _loadDurationsFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
@@ -135,6 +145,7 @@ class TimerProvider extends ChangeNotifier {
     _autoStartPomodoros = prefs.getBool('auto_start_pomodoros') ?? false;
     _longBreakInterval = prefs.getInt('long_break_interval') ?? 4;
     _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    _soundEnabled = prefs.getBool('sound_enabled') ?? true; // 🆕
 
     _remainingTimeSeconds = _workDurationMinutes * 60;
   }
@@ -179,50 +190,54 @@ class TimerProvider extends ChangeNotifier {
 
   // --- Mostrar notificación + reproducir sonido ---
   Future<void> _showNotificationAndPlaySound(PomodoroPhase phase) async {
-    if (!_notificationsEnabled) return;
+    // ✅ Mostrar notificación solo si están habilitadas
+    if (_notificationsEnabled) {
+      String title;
+      String body;
 
-    String title;
-    String body;
+      if (phase == PomodoroPhase.work) {
+        title = "¡Fin del Enfoque! 🔔";
+        body =
+            "Tómate un ${_currentCycle % _longBreakInterval == 0 ? 'descanso largo' : 'descanso corto'} y recarga energías.";
+      } else {
+        title = "¡Fin del Descanso! 💪";
+        body = "Es hora de volver al enfoque. ¡Ciclo ${_currentCycle + 1}!";
+      }
 
-    if (phase == PomodoroPhase.work) {
-      title = "¡Fin del Enfoque! 🔔";
-      body =
-          "Tómate un ${_currentCycle % _longBreakInterval == 0 ? 'descanso largo' : 'descanso corto'} y recarga energías.";
-    } else {
-      title = "¡Fin del Descanso! 💪";
-      body = "Es hora de volver al enfoque. ¡Ciclo ${_currentCycle + 1}!";
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'pomodoro_channel',
+        'Notificaciones Pomodō',
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'timer-alert',
+        playSound: false,
+      );
+
+      const DarwinNotificationDetails iOSDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: false,
+      );
+
+      const NotificationDetails platformDetails =
+          NotificationDetails(android: androidDetails, iOS: iOSDetails);
+
+      await flutterLocalNotificationsPlugin.show(
+        0,
+        title,
+        body,
+        platformDetails,
+      );
     }
 
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'pomodoro_channel',
-      'Notificaciones Pomodō',
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'timer-alert',
-      playSound: false,
-    );
-
-    const DarwinNotificationDetails iOSDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentSound: false,
-    );
-
-    const NotificationDetails platformDetails =
-        NotificationDetails(android: androidDetails, iOS: iOSDetails);
-
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      platformDetails,
-    );
-
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('audio/pomodoro_ring.wav'));
-    } catch (e) {
-      print('❌ Error al reproducir sonido: $e');
+    // ✅ Reproducir sonido aunque las notificaciones estén desactivadas
+    if (_soundEnabled) {
+      try {
+        await _audioPlayer.stop();
+        await _audioPlayer.play(AssetSource('audio/pomodoro_ring.wav'));
+      } catch (e) {
+        print('❌ Error al reproducir sonido: $e');
+      }
     }
   }
 

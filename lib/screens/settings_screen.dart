@@ -100,6 +100,30 @@ class SettingsScreen extends StatelessWidget {
               color: Theme.of(context).primaryColor,
             ),
           ),
+
+          // --- Sonido ---
+          ListTile(
+            leading: Icon(Icons.volume_up_outlined,
+                color: Theme.of(context).textTheme.bodyLarge?.color),
+            title: Text(
+              "Sonido",
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          SwitchListTile(
+            title: const Text("Sonido al finalizar Pomodoro"),
+            value: timerProvider.soundEnabled,
+            onChanged: (value) => timerProvider.setSoundEnabled(value),
+            secondary: Icon(
+              timerProvider.soundEnabled
+                  ? Icons.volume_up
+                  : Icons.volume_off_outlined,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
           const Divider(height: 32),
 
           // --- Pomodoro Automático ---
@@ -115,7 +139,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          // ✅ Traducido: Auto Start Breaks → Inicio automático de descansos
+          // ✅ Inicio automático de descansos
           SwitchListTile(
             title: const Text("Inicio automático de descansos"),
             value: timerProvider.autoStartBreaks,
@@ -126,7 +150,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          // ✅ Traducido: Auto Start Pomodoros → Inicio automático de pomodoros
+          // ✅ Inicio automático de pomodoros
           SwitchListTile(
             title: const Text("Inicio automático de pomodoros"),
             value: timerProvider.autoStartPomodoros,
@@ -137,7 +161,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          // ✅ Traducido: Long Break Interval → Intervalo de descanso largo
+          // ✅ Intervalo de descanso largo
           ListTile(
             title: const Text("Intervalo de descanso largo"),
             trailing: SizedBox(
