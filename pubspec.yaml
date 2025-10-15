@@ -1,0 +1,63 @@
+name: pomodo_app
+description: "A Pomodoro app for students."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.2
+  cupertino_icons: ^1.0.6
+  supabase_flutter: ^2.5.0
+  intl: ^0.20.2
+  flutter_local_notifications: ^18.0.1
+  audioplayers: ^6.1.0                   # 🎵 Para reproducir sonidos locales
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon/logo_pomodo.png   # Ícono final optimizado
+    - assets/audio/                 # Carpeta de sonidos para la app
+
+# ========================================================
+# CONFIGURACIÓN DEL ÍCONO DE LA APP (LANZADOR)
+# ========================================================
+flutter_launcher_icons:
+  android: true
+  ios: true
+
+  # Ícono principal (cuadrado 1024x1024 px)
+  image_path: assets/icon/logo_pomodo.png
+
+  # Ícono adaptativo (Android)
+  adaptive_icon_background: "#000000"    # Fondo negro sólido
+  adaptive_icon_foreground: assets/icon/logo_pomodo.png
+
+  # Compatibilidad mínima de Android
+  min_sdk_android: 21
+
+# ========================================================
+# CONFIGURACIÓN DE LA PANTALLA DE CARGA (SPLASH SCREEN)
+# ========================================================
+flutter_native_splash:
+  image: assets/icon/logo_pomodo.png
+  color: "#000000"        # Fondo negro para mantener coherencia visual
+  fullscreen: true
+
+  # Asegura que el ícono se vea centrado y sin deformarse
+  android_gravity: center
+  ios_content_mode: scaleAspectFit
+
+  # Compatibilidad con Android 12+
+  android_12:
+    image: assets/icon/logo_pomodo.png
+    icon_background_color: "#000000"
