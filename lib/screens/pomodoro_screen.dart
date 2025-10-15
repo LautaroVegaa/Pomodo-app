@@ -277,49 +277,60 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
+
                   // Card de motivación
-                  Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 400),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "¡Mantén el enfoque!",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Cada ciclo completado te acerca más a tus objetivos de estudio.",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+Center(
+  child: Container(
+    width: MediaQuery.of(context).size.width * 0.9, // ✅ se adapta al ancho del dispositivo
+    height: 140, // ✅ altura fija
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: const Color(0xFF8B5CF6),
+      borderRadius: BorderRadius.circular(8),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center, // ✅ centra verticalmente
+      children: [
+        Text(
+          "¡Mantén el enfoque!",
+          textAlign: TextAlign.center,
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge
+              ?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+        ),
+        const SizedBox(height: 8),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400), // ✨ animación suave
+          child: Text(
+            timerProvider.currentPhrase.isNotEmpty
+                ? timerProvider.currentPhrase
+                : "Cada ciclo completado te acerca más a tus objetivos de estudio.",
+            key: ValueKey(timerProvider.currentPhrase),
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: Colors.white70),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
+
                   const SizedBox(height: 24),
                   const PomodoroStatsCard(),
                   const SizedBox(height: 8),

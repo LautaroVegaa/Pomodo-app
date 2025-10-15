@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +19,7 @@ class TimerProvider extends ChangeNotifier {
   bool _autoStartPomodoros = false;
   int _longBreakInterval = 4;
   bool _notificationsEnabled = true;
-  bool _soundEnabled = true; // 🆕 NUEVO
+  bool _soundEnabled = true;
 
   // --- ESTADO DEL TEMPORIZADOR ---
   int _remainingTimeSeconds = 25 * 60;
@@ -29,6 +30,56 @@ class TimerProvider extends ChangeNotifier {
 
   String _userName = "Usuario";
   DateTime _lastUpdatedDate = DateTime.now();
+
+  // --- FRASES MOTIVACIONALES ---
+  final List<String> focusPhrases = [
+    "Nadie lo va a hacer por vos. O lo hacés ahora, o seguís soñando con hacerlo algún día.",
+    "No te distraigas: cada vez que lo hacés, elegís postergar la vida que querés.",
+    "Mientras dudás, alguien más está avanzando.",
+    "El tiempo que perdés no vuelve. Nunca.",
+    "No estás cansado. Estás evitando crecer.",
+    "No busques excusas, buscá resultados.",
+    "Cada Pomodoro que terminás es una promesa cumplida con vos mismo. Romperla duele más.",
+    "Querías resultados distintos, pero seguís haciendo lo mismo.",
+    "No sos tu potencial, sos lo que hacés cada día.",
+    "El sacrificio de hoy es la libertad de mañana.",
+    "Tu futuro depende de lo que hagas en los próximos 25 minutos, no mañana.",
+    "Si no soportás el esfuerzo, vas a tener que soportar las consecuencias.",
+    "Tus metas no te están esperando, se las está llevando otro que sí trabaja.",
+    "Cada interrupción es una forma de rendirte un poco.",
+    "No te falta tiempo. Te falta decisión.",
+  ];
+
+  final List<String> breakPhrases = [
+    "Respirá. No estás frenando, estás recargando.",
+    "Tomate este momento para recuperar energía, no para rendirte.",
+    "Descansar también es parte del trabajo, si sabés volver.",
+    "Soltá un poco, pero no olvides por qué empezaste.",
+    "Este descanso no es premio ni castigo, es estrategia.",
+    "Aflojá el cuerpo, pero mantené viva la intención.",
+    "Un respiro no borra el progreso, lo refuerza.",
+    "Tu mente necesita pausa, no abandono.",
+    "Usá este descanso para pensar en lo que viene, no en lo que falta.",
+    "Relajate, pero sabé que el reloj vuelve a correr pronto.",
+    "Cuidarte también es disciplina.",
+    "Este momento es tuyo, aprovechalo para volver más claro.",
+    "No se trata de parar, sino de volver mejor.",
+    "Un buen descanso sostiene un buen rendimiento.",
+    "Respirá profundo. La constancia también se entrena descansando.",
+  ];
+
+  String _currentPhrase = "";
+  String get currentPhrase => _currentPhrase;
+
+  void _updateMotivationalPhrase() {
+    final random = Random();
+    if (_currentPhase == PomodoroPhase.work) {
+      _currentPhrase = focusPhrases[random.nextInt(focusPhrases.length)];
+    } else {
+      _currentPhrase = breakPhrases[random.nextInt(breakPhrases.length)];
+    }
+    notifyListeners();
+  }
 
   // --- Notificaciones y Audio ---
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -51,7 +102,7 @@ class TimerProvider extends ChangeNotifier {
   bool get autoStartPomodoros => _autoStartPomodoros;
   int get longBreakInterval => _longBreakInterval;
   bool get notificationsEnabled => _notificationsEnabled;
-  bool get soundEnabled => _soundEnabled; // 🆕
+  bool get soundEnabled => _soundEnabled;
 
   String get formattedTime {
     int minutes = _remainingTimeSeconds ~/ 60;
@@ -127,7 +178,6 @@ class TimerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 🆕 Nuevo setter para el sonido
   Future<void> setSoundEnabled(bool value) async {
     _soundEnabled = value;
     final prefs = await SharedPreferences.getInstance();
@@ -145,7 +195,7 @@ class TimerProvider extends ChangeNotifier {
     _autoStartPomodoros = prefs.getBool('auto_start_pomodoros') ?? false;
     _longBreakInterval = prefs.getInt('long_break_interval') ?? 4;
     _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-    _soundEnabled = prefs.getBool('sound_enabled') ?? true; // 🆕
+    _soundEnabled = prefs.getBool('sound_enabled') ?? true;
 
     _remainingTimeSeconds = _workDurationMinutes * 60;
   }
@@ -190,7 +240,6 @@ class TimerProvider extends ChangeNotifier {
 
   // --- Mostrar notificación + reproducir sonido ---
   Future<void> _showNotificationAndPlaySound(PomodoroPhase phase) async {
-    // ✅ Mostrar notificación solo si están habilitadas
     if (_notificationsEnabled) {
       String title;
       String body;
@@ -230,7 +279,6 @@ class TimerProvider extends ChangeNotifier {
       );
     }
 
-    // ✅ Reproducir sonido aunque las notificaciones estén desactivadas
     if (_soundEnabled) {
       try {
         await _audioPlayer.stop();
@@ -342,6 +390,8 @@ class TimerProvider extends ChangeNotifier {
         _remainingTimeSeconds = _shortBreakDurationMinutes * 60;
       }
 
+      _updateMotivationalPhrase(); // ✅ cambia frase al pasar a descanso
+
       if (_autoStartBreaks) {
         startStopTimer();
         return;
@@ -354,6 +404,8 @@ class TimerProvider extends ChangeNotifier {
       }
       _currentPhase = PomodoroPhase.work;
       _remainingTimeSeconds = _workDurationMinutes * 60;
+
+      _updateMotivationalPhrase(); // ✅ cambia frase al pasar a enfoque
 
       if (_autoStartPomodoros) {
         startStopTimer();
@@ -370,6 +422,7 @@ class TimerProvider extends ChangeNotifier {
     _currentPhase = PomodoroPhase.work;
     _currentCycle = 1;
     _remainingTimeSeconds = _workDurationMinutes * 60;
+    _updateMotivationalPhrase(); // ✅ FIX: refresca frase al resetear
     notifyListeners();
   }
 
@@ -382,6 +435,7 @@ class TimerProvider extends ChangeNotifier {
     await _loadDurationsFromPrefs();
     await _loadTodayStats();
     await _initializeNotifications();
+    _updateMotivationalPhrase(); // ✅ FIX: genera primera frase visible
     notifyListeners();
   }
 
