@@ -1,11 +1,9 @@
-// lib/providers/timer_provider.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:audioplayers/audioplayers.dart'; // 🎵 NUEVO: para reproducir sonido local
+import 'package:audioplayers/audioplayers.dart';
 
 enum PomodoroPhase { work, shortBreak, longBreak }
 
@@ -13,7 +11,13 @@ class TimerProvider extends ChangeNotifier {
   // --- CONFIGURACIÓN DE DURACIÓN (en minutos) ---
   int _workDurationMinutes = 25;
   int _shortBreakDurationMinutes = 5;
-  final int _longBreakDurationMinutes = 15;
+  int _longBreakDurationMinutes = 15; // ✅ ahora editable
+
+  // --- CONFIGURACIÓN AVANZADA ---
+  bool _autoStartBreaks = false;
+  bool _autoStartPomodoros = false;
+  int _longBreakInterval = 4;
+  bool _notificationsEnabled = true;
 
   // --- ESTADO DEL TEMPORIZADOR ---
   int _remainingTimeSeconds = 25 * 60;
@@ -28,7 +32,7 @@ class TimerProvider extends ChangeNotifier {
   // --- Notificaciones y Audio ---
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  final AudioPlayer _audioPlayer = AudioPlayer()..setVolume(1.0); // 🎵 NUEVO
+  final AudioPlayer _audioPlayer = AudioPlayer()..setVolume(1.0);
 
   // --- GETTERS ---
   int get workDurationMinutes => _workDurationMinutes;
@@ -41,6 +45,11 @@ class TimerProvider extends ChangeNotifier {
   int get completedCycles => _currentCycle > 1 ? _currentCycle - 1 : 0;
   int get totalTimeStudiedInMinutes => completedCycles * _workDurationMinutes;
   String get userName => _userName;
+
+  bool get autoStartBreaks => _autoStartBreaks;
+  bool get autoStartPomodoros => _autoStartPomodoros;
+  int get longBreakInterval => _longBreakInterval;
+  bool get notificationsEnabled => _notificationsEnabled;
 
   String get formattedTime {
     int minutes = _remainingTimeSeconds ~/ 60;
@@ -81,84 +90,122 @@ class TimerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setLongBreakDuration(int minutes) async {
+    _longBreakDurationMinutes = minutes < 1 ? 1 : minutes;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('long_break_duration', _longBreakDurationMinutes);
+    notifyListeners();
+  }
+
+  Future<void> setAutoStartBreaks(bool value) async {
+    _autoStartBreaks = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('auto_start_breaks', value);
+    notifyListeners();
+  }
+
+  Future<void> setAutoStartPomodoros(bool value) async {
+    _autoStartPomodoros = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('auto_start_pomodoros', value);
+    notifyListeners();
+  }
+
+  Future<void> setLongBreakInterval(int value) async {
+    _longBreakInterval = value < 1 ? 1 : value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('long_break_interval', _longBreakInterval);
+    notifyListeners();
+  }
+
+  Future<void> setNotificationsEnabled(bool value) async {
+    _notificationsEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
+    notifyListeners();
+  }
+
   // --- Cargar configuración guardada ---
   Future<void> _loadDurationsFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _workDurationMinutes = prefs.getInt('work_duration') ?? 25;
     _shortBreakDurationMinutes = prefs.getInt('short_break_duration') ?? 5;
+    _longBreakDurationMinutes = prefs.getInt('long_break_duration') ?? 15;
+    _autoStartBreaks = prefs.getBool('auto_start_breaks') ?? false;
+    _autoStartPomodoros = prefs.getBool('auto_start_pomodoros') ?? false;
+    _longBreakInterval = prefs.getInt('long_break_interval') ?? 4;
+    _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+
     _remainingTimeSeconds = _workDurationMinutes * 60;
   }
 
   // --- Inicialización de notificaciones ---
   Future<void> _initializeNotifications() async {
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  const DarwinInitializationSettings initializationSettingsIOS =
-      DarwinInitializationSettings(
-    requestSoundPermission: true,
-    requestBadgePermission: true,
-    requestAlertPermission: true,
-  );
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+      requestAlertPermission: true,
+    );
 
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
-  );
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
 
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // Pedir permiso explícito en Android 13+
-  await flutterLocalNotificationsPlugin
-    .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-    ?.requestNotificationsPermission();
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
 
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'pomodoro_channel',
+      'Notificaciones Pomodō',
+      description: 'Canal de notificaciones para finales de ciclo de Pomodoro.',
+      importance: Importance.high,
+    );
 
-  // Crear canal de notificación si no existe (Android)
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'pomodoro_channel', // mismo ID que usás en _showNotificationAndPlaySound
-    'Notificaciones Pomodō',
-    description:
-        'Canal de notificaciones para finales de ciclo de Pomodoro.',
-    importance: Importance.high,
-  );
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
 
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-}
-
-
-  // --- Mostrar notificación + reproducir sonido desde assets ---
+  // --- Mostrar notificación + reproducir sonido ---
   Future<void> _showNotificationAndPlaySound(PomodoroPhase phase) async {
+    if (!_notificationsEnabled) return;
+
     String title;
     String body;
 
     if (phase == PomodoroPhase.work) {
       title = "¡Fin del Enfoque! 🔔";
       body =
-          "Tómate un ${_currentCycle % 4 == 0 ? 'descanso largo' : 'descanso corto'} y recarga energías.";
+          "Tómate un ${_currentCycle % _longBreakInterval == 0 ? 'descanso largo' : 'descanso corto'} y recarga energías.";
     } else {
       title = "¡Fin del Descanso! 💪";
       body = "Es hora de volver al enfoque. ¡Ciclo ${_currentCycle + 1}!";
     }
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'pomodoro_channel',
       'Notificaciones Pomodō',
-      channelDescription:
-          'Canal de notificaciones para finales de ciclo de Pomodoro.',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'timer-alert',
-      playSound: false, // 🔇 Desactivamos sonido del sistema
+      playSound: false,
     );
 
     const DarwinNotificationDetails iOSDetails = DarwinNotificationDetails(
       presentAlert: true,
-      presentSound: false, // 🔇 iOS sin sonido interno
+      presentSound: false,
     );
 
     const NotificationDetails platformDetails =
@@ -169,15 +216,35 @@ class TimerProvider extends ChangeNotifier {
       title,
       body,
       platformDetails,
-      payload: 'cycle-completed',
     );
 
-    // 🎵 Reproducir sonido desde assets/audio/pomodoro_ring.wav
     try {
       await _audioPlayer.stop();
       await _audioPlayer.play(AssetSource('audio/pomodoro_ring.wav'));
     } catch (e) {
       print('❌ Error al reproducir sonido: $e');
+    }
+  }
+
+  // --- Guardar sesión en Supabase ---
+  Future<void> _savePomodoroSession(int durationMinutes, String type) async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) return;
+
+    try {
+      await supabase.from('pomodoro_sessions').insert({
+        'user_id': user.id,
+        'duration_minutes': durationMinutes,
+        'type': type,
+        'completed_at': DateTime.now().toIso8601String(),
+      });
+
+      print("✅ Sesión guardada en Supabase ($type - $durationMinutes min)");
+      await _loadTodayStats();
+    } catch (e) {
+      print("❌ Error al guardar sesión: $e");
     }
   }
 
@@ -214,28 +281,6 @@ class TimerProvider extends ChangeNotifier {
     }
   }
 
-  // --- Guardar sesión en Supabase ---
-  Future<void> _savePomodoroSession(int durationMinutes, String type) async {
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
-
-    if (user == null) return;
-
-    try {
-      await supabase.from('pomodoro_sessions').insert({
-        'user_id': user.id,
-        'duration_minutes': durationMinutes,
-        'type': type,
-        'completed_at': DateTime.now().toIso8601String(),
-      });
-
-      print("✅ Sesión guardada en Supabase ($type - $durationMinutes min)");
-      await _loadTodayStats();
-    } catch (e) {
-      print("❌ Error al guardar sesión: $e");
-    }
-  }
-
   // --- Lógica del temporizador ---
   void startStopTimer() {
     if (DateTime.now().day != _lastUpdatedDate.day) {
@@ -257,7 +302,7 @@ class TimerProvider extends ChangeNotifier {
           if (_currentPhase == PomodoroPhase.work) {
             _savePomodoroSession(_workDurationMinutes, "work");
           }
-          _handleNextPhase(true);
+          _handleNextPhase(false);
         }
         notifyListeners();
       });
@@ -274,12 +319,17 @@ class TimerProvider extends ChangeNotifier {
     _timer?.cancel();
 
     if (_currentPhase == PomodoroPhase.work) {
-      if (_currentCycle < 4) {
-        _currentPhase = PomodoroPhase.shortBreak;
-        _remainingTimeSeconds = _shortBreakDurationMinutes * 60;
-      } else {
+      if (_currentCycle % _longBreakInterval == 0) {
         _currentPhase = PomodoroPhase.longBreak;
         _remainingTimeSeconds = _longBreakDurationMinutes * 60;
+      } else {
+        _currentPhase = PomodoroPhase.shortBreak;
+        _remainingTimeSeconds = _shortBreakDurationMinutes * 60;
+      }
+
+      if (_autoStartBreaks) {
+        startStopTimer();
+        return;
       }
     } else {
       if (_currentPhase == PomodoroPhase.longBreak) {
@@ -289,11 +339,14 @@ class TimerProvider extends ChangeNotifier {
       }
       _currentPhase = PomodoroPhase.work;
       _remainingTimeSeconds = _workDurationMinutes * 60;
+
+      if (_autoStartPomodoros) {
+        startStopTimer();
+        return;
+      }
     }
 
     notifyListeners();
-
-    if (autoStartNext) startStopTimer();
   }
 
   void resetTimer() {
@@ -305,7 +358,7 @@ class TimerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Constructor ---
+  // --- Inicialización ---
   TimerProvider() {
     _initializeProvider();
   }
