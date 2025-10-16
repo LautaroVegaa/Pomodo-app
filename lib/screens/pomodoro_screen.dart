@@ -330,7 +330,6 @@ Center(
   ),
 ),
 
-
                   const SizedBox(height: 24),
                   const PomodoroStatsCard(),
                   const SizedBox(height: 8),

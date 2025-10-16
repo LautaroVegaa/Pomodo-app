@@ -31,6 +31,10 @@ class TimerProvider extends ChangeNotifier {
   String _userName = "Usuario";
   DateTime _lastUpdatedDate = DateTime.now();
 
+  // --- NUEVO: Racha diaria ---
+  int _currentStreak = 0;
+  int get currentStreak => _currentStreak;
+
   // --- FRASES MOTIVACIONALES ---
   final List<String> focusPhrases = [
     "Nadie lo va a hacer por vos. O lo hacés ahora, o seguís soñando con hacerlo algún día.",
@@ -200,6 +204,61 @@ class TimerProvider extends ChangeNotifier {
     _remainingTimeSeconds = _workDurationMinutes * 60;
   }
 
+  // --- NUEVO: Calcular la racha diaria (CORREGIDO) ---
+  Future<void> _loadStreak() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final data = await supabase
+          .from('pomodoro_sessions')
+          .select('completed_at')
+          .eq('user_id', user.id)
+          .order('completed_at', ascending: false)
+          .limit(30);
+
+      // 1. Obtener un Set de fechas únicas (solo día, ignorando el tiempo) en hora local
+      final now = DateTime.now().toLocal();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      
+      final uniqueDays = data
+          .map<DateTime>((row) => DateTime.parse(row['completed_at']).toLocal())
+          .map((d) => DateTime(d.year, d.month, d.day))
+          .toSet();
+      
+      // 2. Inicializar y verificar la racha
+      int streak = 0;
+      DateTime checkDay = todayStart;
+
+      // Paso 1: Verificar si hay sesión hoy e inicializar el conteo.
+      if (uniqueDays.contains(todayStart)) {
+          streak = 1;
+          checkDay = todayStart.subtract(const Duration(days: 1)); // El próximo día esperado es ayer
+      } else {
+          // Si no hay sesión hoy, la racha consecutiva HASTA HOY es 0 por definición.
+          _currentStreak = 0;
+          notifyListeners();
+          return;
+      }
+      
+      // Paso 2: Contar días consecutivos hacia atrás desde ayer.
+      while (true) {
+          if (uniqueDays.contains(checkDay)) {
+              streak++;
+              checkDay = checkDay.subtract(const Duration(days: 1));
+          } else {
+              break; // La racha se rompe.
+          }
+      }
+
+      _currentStreak = streak;
+      notifyListeners();
+    } catch (e) {
+      print("❌ Error al calcular racha: $e");
+    }
+  }
+
   // --- Inicialización de notificaciones ---
   Future<void> _initializeNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -306,6 +365,7 @@ class TimerProvider extends ChangeNotifier {
 
       print("✅ Sesión guardada en Supabase ($type - $durationMinutes min)");
       await _loadTodayStats();
+      await _loadStreak(); // Actualizar racha al guardar sesión (CORREGIDO)
     } catch (e) {
       print("❌ Error al guardar sesión: $e");
     }
@@ -338,6 +398,8 @@ class TimerProvider extends ChangeNotifier {
 
       _currentCycle = totalSessions + 1;
       _lastUpdatedDate = today;
+
+      await _loadStreak(); // También cargar racha al inicio (CORREGIDO)
       notifyListeners();
     } catch (e) {
       print("❌ Error al cargar sesiones del día: $e");
@@ -390,7 +452,7 @@ class TimerProvider extends ChangeNotifier {
         _remainingTimeSeconds = _shortBreakDurationMinutes * 60;
       }
 
-      _updateMotivationalPhrase(); // ✅ cambia frase al pasar a descanso
+      _updateMotivationalPhrase(); // cambia frase al pasar a descanso
 
       if (_autoStartBreaks) {
         startStopTimer();
@@ -405,7 +467,7 @@ class TimerProvider extends ChangeNotifier {
       _currentPhase = PomodoroPhase.work;
       _remainingTimeSeconds = _workDurationMinutes * 60;
 
-      _updateMotivationalPhrase(); // ✅ cambia frase al pasar a enfoque
+      _updateMotivationalPhrase(); // cambia frase al pasar a enfoque
 
       if (_autoStartPomodoros) {
         startStopTimer();
@@ -422,7 +484,7 @@ class TimerProvider extends ChangeNotifier {
     _currentPhase = PomodoroPhase.work;
     _currentCycle = 1;
     _remainingTimeSeconds = _workDurationMinutes * 60;
-    _updateMotivationalPhrase(); // ✅ FIX: refresca frase al resetear
+    _updateMotivationalPhrase(); // FIX: refresca frase al resetear
     notifyListeners();
   }
 
@@ -435,7 +497,7 @@ class TimerProvider extends ChangeNotifier {
     await _loadDurationsFromPrefs();
     await _loadTodayStats();
     await _initializeNotifications();
-    _updateMotivationalPhrase(); // ✅ FIX: genera primera frase visible
+    _updateMotivationalPhrase(); // FIX: genera primera frase visible
     notifyListeners();
   }
 
