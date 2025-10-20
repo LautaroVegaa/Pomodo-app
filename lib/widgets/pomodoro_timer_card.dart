@@ -8,10 +8,11 @@ class PomodoroTimerCard extends StatelessWidget {
   // Función para obtener el texto del estado actual
   String _getStatusText(TimerProvider timer) {
     // Si no está corriendo, muestra "Pausado"
-    if (!timer.isRunning && timer.remainingTimeSeconds == timer.workDurationMinutes * 60) {
+    if (!timer.isRunning &&
+        timer.remainingTimeSeconds == timer.workDurationMinutes * 60) {
       return "Pausado"; // Estado inicial o reseteado
     }
-    
+
     switch (timer.currentPhase) {
       case PomodoroPhase.work:
         return "Enfoque - Ciclo ${timer.currentCycle}";
@@ -60,8 +61,9 @@ class PomodoroTimerCard extends StatelessWidget {
               value: _getProgressValue(timerProvider),
               minHeight: 6,
               backgroundColor: Colors.grey.shade300,
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
             ),
             const SizedBox(height: 20),
             Row(
@@ -82,8 +84,9 @@ class PomodoroTimerCard extends StatelessWidget {
                 const SizedBox(width: 20),
                 IconButton(
                   style: IconButton.styleFrom(
-                      backgroundColor: Colors.grey.withOpacity(0.2),
-                      padding: const EdgeInsets.all(16)),
+                    backgroundColor: Colors.grey.withOpacity(0.2),
+                    padding: const EdgeInsets.all(16),
+                  ),
                   icon: const Icon(Icons.refresh, size: 28),
                   onPressed: () {
                     // Si el timer está corriendo, salta la fase. Si está pausado, hace reset.
@@ -105,12 +108,15 @@ class PomodoroTimerCard extends StatelessWidget {
   double _getProgressValue(TimerProvider timer) {
     switch (timer.currentPhase) {
       case PomodoroPhase.work:
-        return timer.remainingTimeSeconds / (timer.workDurationMinutes * 60);
+        return timer.remainingTimeSeconds /
+            (timer.workDurationMinutes * 60);
       case PomodoroPhase.shortBreak:
-        return timer.remainingTimeSeconds / (timer.shortBreakDurationMinutes * 60);
+        return timer.remainingTimeSeconds /
+            (timer.shortBreakDurationMinutes * 60);
       case PomodoroPhase.longBreak:
-        // El descanso largo es fijo de 15 minutos
-        return timer.remainingTimeSeconds / (15 * 60); 
+        // ✅ FIX: ahora usa la duración dinámica del descanso largo
+        return timer.remainingTimeSeconds /
+            (timer.longBreakDurationMinutes * 60);
     }
   }
 }
