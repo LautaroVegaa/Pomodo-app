@@ -43,7 +43,7 @@ class PomodoroStatsCard extends StatelessWidget {
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
-                    const Text("Ciclos"), // CAMBIO: Texto a "Ciclos"
+                    const Text("Ciclos"),
                   ],
                 ),
                 Column(
@@ -56,21 +56,21 @@ class PomodoroStatsCard extends StatelessWidget {
                         color: Color(0xFF10B981),
                       ),
                     ),
-                    const Text("Estudiado"), // CAMBIO: Texto a "Estudiado"
+                    const Text("Estudiado"),
                   ],
                 ),
-                // CAMBIO: Añadida la estadística de Racha (Streak)
+                // ✅ Racha diaria conectada al TimerProvider
                 Column(
                   children: [
                     Text(
-                      '0', // Valor fijo temporal para Racha
+                      timerProvider.currentStreak.toString(),
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
-                    const Text("Racha"), // Título Racha
+                    const Text("Racha"),
                   ],
                 ),
               ],
@@ -81,5 +81,3 @@ class PomodoroStatsCard extends StatelessWidget {
     );
   }
 }
-
-// Se elimina PomodoroSettingsCard ya que su funcionalidad se ha integrado en PomodoroScreen
