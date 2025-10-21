@@ -1,67 +1,89 @@
 // lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:pomodo_app/providers/theme_provider.dart';
 import 'package:pomodo_app/providers/timer_provider.dart';
 import 'package:pomodo_app/screens/login_screen.dart';
 import 'package:pomodo_app/screens/pomodoro_screen.dart';
+import 'package:pomodo_app/screens/onboarding/onboarding_welcome.dart';
 import 'package:pomodo_app/theme/app_theme.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'config.dart'; // Asegúrate de que este archivo exista
-
-// [NUEVO] Widget de carga, definido aquí para ser accesible
-class LoadingScreen extends StatelessWidget {
-  const LoadingScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-}
+import 'package:shared_preferences/shared_preferences.dart';
+import 'config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicializa Supabase
   await Supabase.initialize(
-    url: supabaseUrl, // Desde config.dart
-    anonKey: supabaseAnonKey, // Desde config.dart
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
   );
 
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // ✅ [MEJORADO] Guarda el nombre y actualiza estadísticas tras iniciar sesión
-  void _saveUserNameFromSession(BuildContext context, Session session) {
-    final user = session.user;
-    if (user != null) {
-      // Accedemos al provider
-      final timerProvider =
-          provider.Provider.of<TimerProvider>(context, listen: false);
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-      // Extraemos el nombre del usuario
-      final fullName = user.userMetadata?['full_name'] as String?;
+class _MyAppState extends State<MyApp> {
+  bool _initialized = false;
+  bool _completedOnboarding = false;
+  Session? _session;
 
-      if (fullName != null && fullName.isNotEmpty) {
-        timerProvider.setUserName(fullName);
-      } else {
-        timerProvider.setUserName(user.email ?? "Usuario");
-      }
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
 
-      // 🟢 NUEVO: Recarga las estadísticas del día actual al iniciar sesión
-      timerProvider.loadTodayStatsIfAvailable();
-    }
+  /// 🔹 Inicializa SharedPreferences y Supabase antes de construir la app
+  Future<void> _initializeApp() async {
+    final prefs = await SharedPreferences.getInstance();
+    // ✅ La clave 'completedOnboarding' se verifica aquí.
+    final completed = prefs.getBool('completedOnboarding') ?? false;
+    final session = Supabase.instance.client.auth.currentSession;
+
+    setState(() {
+      _completedOnboarding = completed;
+      _session = session;
+      _initialized = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Mientras no termine de inicializar, no muestra nada más que una splash
+    if (!_initialized) {
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Color(0xFF0A0F24),
+          body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF00CFFF)),
+          ),
+        ),
+      );
+    }
+
+    // ✅ Lógica definitiva: decide la pantalla inicial
+    Widget home;
+    if (!_completedOnboarding) {
+      // 🥇 1. Si NO completó el onboarding (es nuevo) → lo mostramos
+      home = const OnboardingWelcome();
+    } else if (_session != null) {
+      // 🥈 2. Si completó el onboarding Y hay sesión iniciada → Pomodoro
+      home = const PomodoroScreen();
+    } else {
+      // 🥉 3. Si completó el onboarding pero NO tiene sesión → Login
+      home = const LoginScreen();
+    }
+
+    // 🔹 Ahora sí construimos toda la app normalmente
     return provider.MultiProvider(
       providers: [
         provider.ChangeNotifierProvider(create: (_) => ThemeProvider()),
@@ -75,27 +97,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
-            home: StreamBuilder<AuthState>(
-              // Escucha los cambios de sesión en Supabase
-              stream: Supabase.instance.client.auth.onAuthStateChange,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const LoadingScreen();
-                }
-
-                if (snapshot.hasData && snapshot.data!.session != null) {
-                  final session = snapshot.data!.session!;
-
-                  // Guarda el nombre del usuario y carga estadísticas
-                  _saveUserNameFromSession(context, session);
-
-                  return const PomodoroScreen();
-                }
-
-                // Si no hay sesión activa
-                return const LoginScreen();
-              },
-            ),
+            home: home, // 🔑 Usa el widget decidido por la lógica de arriba
           );
         },
       ),

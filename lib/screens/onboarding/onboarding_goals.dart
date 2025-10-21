@@ -1,3 +1,4 @@
+// lib/screens/onboarding/onboarding_goals.dart
 import 'package:flutter/material.dart';
 import 'package:pomodo_app/screens/onboarding/onboarding_values.dart';
 
@@ -11,12 +12,14 @@ class OnboardingGoals extends StatefulWidget {
 class _OnboardingGoalsState extends State<OnboardingGoals> {
   String? _selectedGoal;
 
+  /// 🔹 Guarda la opción elegida por el usuario
   void _selectGoal(String goal) {
     setState(() {
       _selectedGoal = goal;
     });
   }
 
+  /// 🟢 Valida y avanza a la siguiente pantalla
   void _continueToNext() {
     if (_selectedGoal == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,6 +31,7 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
       return;
     }
 
+    // 🟢 En el futuro, se puede guardar en Supabase o SharedPreferences
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const OnboardingValues()),
@@ -63,7 +67,7 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
                 ),
                 const SizedBox(height: 40),
 
-                // Opciones
+                // --- Opciones ---
                 _buildOption("Improve focus"),
                 const SizedBox(height: 16),
                 _buildOption("Manage stress"),
@@ -72,7 +76,7 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
 
                 const SizedBox(height: 40),
 
-                // Botón Continue
+                // --- Botón Continue ---
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -102,9 +106,10 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
     );
   }
 
-  // --- Widget auxiliar para las opciones ---
+  /// 🔹 Crea las tarjetas de opción animadas
   Widget _buildOption(String goal) {
     final isSelected = _selectedGoal == goal;
+
     return GestureDetector(
       onTap: () => _selectGoal(goal),
       child: AnimatedContainer(

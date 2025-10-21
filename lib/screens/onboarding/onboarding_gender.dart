@@ -1,3 +1,4 @@
+// lib/screens/onboarding/onboarding_gender.dart
 import 'package:flutter/material.dart';
 import 'package:pomodo_app/screens/onboarding/onboarding_goals.dart';
 
@@ -11,12 +12,14 @@ class OnboardingGender extends StatefulWidget {
 class _OnboardingGenderState extends State<OnboardingGender> {
   String? _selectedGender;
 
+  /// 🟣 Guarda la selección de género en memoria temporal
   void _selectGender(String gender) {
     setState(() {
       _selectedGender = gender;
     });
   }
 
+  /// 🟢 Avanza al siguiente paso si hay una selección
   void _continueToNext() {
     if (_selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,6 +31,7 @@ class _OnboardingGenderState extends State<OnboardingGender> {
       return;
     }
 
+    // 🟢 En el futuro se puede guardar esta preferencia en Supabase o SharedPreferences
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const OnboardingGoals()),
@@ -63,7 +67,7 @@ class _OnboardingGenderState extends State<OnboardingGender> {
                 ),
                 const SizedBox(height: 40),
 
-                // Opciones
+                // --- Opciones ---
                 _buildOption("Male"),
                 const SizedBox(height: 16),
                 _buildOption("Female"),
@@ -72,7 +76,7 @@ class _OnboardingGenderState extends State<OnboardingGender> {
 
                 const SizedBox(height: 40),
 
-                // Botón Continue
+                // --- Botón Continue ---
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -102,9 +106,10 @@ class _OnboardingGenderState extends State<OnboardingGender> {
     );
   }
 
-  // --- Widget auxiliar para las opciones ---
+  /// 🔹 Construye cada opción de género con animación
   Widget _buildOption(String gender) {
     final isSelected = _selectedGender == gender;
+
     return GestureDetector(
       onTap: () => _selectGender(gender),
       child: AnimatedContainer(

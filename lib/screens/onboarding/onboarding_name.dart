@@ -1,3 +1,4 @@
+// lib/screens/onboarding/onboarding_name.dart
 import 'package:flutter/material.dart';
 import 'package:pomodo_app/screens/onboarding/onboarding_birthdate.dart';
 
@@ -11,6 +12,14 @@ class OnboardingName extends StatefulWidget {
 class _OnboardingNameState extends State<OnboardingName> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    // 🧹 Limpieza de controladores para evitar memory leaks
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
 
   void _continueToNext() {
     final firstName = _firstNameController.text.trim();
@@ -65,6 +74,7 @@ class _OnboardingNameState extends State<OnboardingName> {
                 // --- First name ---
                 TextField(
                   controller: _firstNameController,
+                  textCapitalization: TextCapitalization.words, // 🆕 Mejora UX
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: "First name",
@@ -88,6 +98,7 @@ class _OnboardingNameState extends State<OnboardingName> {
                 // --- Last name ---
                 TextField(
                   controller: _lastNameController,
+                  textCapitalization: TextCapitalization.words, // 🆕 Mejora UX
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: "Last name",

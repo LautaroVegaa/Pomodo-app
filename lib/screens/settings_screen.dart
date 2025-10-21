@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 🧠 Necesario para acceder al flag del onboarding
+import 'package:flutter/foundation.dart'; // 🧪 Para usar kReleaseMode (detecta modo debug)
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
 
@@ -17,6 +19,21 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cerrar sesión: $e')),
+      );
+    }
+  }
+
+  // 🧪 Nuevo: función para reiniciar el onboarding (solo modo debug)
+  Future<void> _resetOnboarding(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('completedOnboarding'); // 🔥 Borra el flag guardado
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Onboarding reiniciado. Reinicia la app para verlo nuevamente.'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -72,9 +89,8 @@ class SettingsScreen extends StatelessWidget {
               isDarkMode
                   ? Icons.dark_mode_outlined
                   : Icons.light_mode_outlined,
-              color: isDarkMode
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey,
+              color:
+                  isDarkMode ? Theme.of(context).primaryColor : Colors.grey,
             ),
           ),
           const Divider(height: 32),
@@ -223,6 +239,28 @@ class SettingsScreen extends StatelessWidget {
             ),
             onTap: () => _signOut(context),
           ),
+
+          // 🧪 DEBUG: Botón para reiniciar el onboarding (solo visible en modo debug)
+          if (!kReleaseMode)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                label: const Text(
+                  'Reiniciar Onboarding',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00CFFF),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => _resetOnboarding(context),
+              ),
+            ),
         ],
       ),
     );

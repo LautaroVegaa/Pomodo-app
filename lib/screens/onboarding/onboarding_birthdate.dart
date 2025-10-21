@@ -1,3 +1,4 @@
+// lib/screens/onboarding/onboarding_birthdate.dart
 import 'package:flutter/material.dart';
 import 'package:pomodo_app/screens/onboarding/onboarding_gender.dart';
 
@@ -11,27 +12,33 @@ class OnboardingBirthdate extends StatefulWidget {
 class _OnboardingBirthdateState extends State<OnboardingBirthdate> {
   DateTime? _selectedDate;
 
+  /// 🗓️ Selector de fecha con tema personalizado Pomodō
   void _pickDate() async {
     final now = DateTime.now();
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(now.year - 20),
+      initialDate: DateTime(now.year - 20), // valor por defecto: 20 años atrás
       firstDate: DateTime(1900),
       lastDate: now,
       builder: (context, child) {
+        // 🎨 Personalización de colores (tema oscuro Pomodō)
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF00CFFF),
+              primary: Color(0xFF00CFFF), // azul Pomodō
               onPrimary: Colors.black,
               surface: Color(0xFF101C40),
               onSurface: Colors.white,
             ),
+            dialogBackgroundColor: Color(0xFF0A0F24),
           ),
           child: child!,
         );
       },
     );
+
+    // ✅ Solo actualizar si el usuario realmente seleccionó una fecha nueva
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -39,6 +46,7 @@ class _OnboardingBirthdateState extends State<OnboardingBirthdate> {
     }
   }
 
+  /// 🟢 Avanza al siguiente paso del onboarding
   void _continueToNext() {
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -50,6 +58,7 @@ class _OnboardingBirthdateState extends State<OnboardingBirthdate> {
       return;
     }
 
+    // 🟢 En el futuro, esta fecha podría guardarse en Supabase o SharedPreferences
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const OnboardingGender()),
@@ -85,7 +94,7 @@ class _OnboardingBirthdateState extends State<OnboardingBirthdate> {
                 ),
                 const SizedBox(height: 40),
 
-                // Campo visual del selector
+                // --- Campo visual del selector ---
                 GestureDetector(
                   onTap: _pickDate,
                   child: Container(
@@ -95,20 +104,26 @@ class _OnboardingBirthdateState extends State<OnboardingBirthdate> {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFF00CFFF), width: 1),
+                      border: Border.all(
+                          color: const Color(0xFF00CFFF),
+                          width: 1,
+                      ),
                     ),
                     child: Text(
                       _selectedDate == null
                           ? "Enter your birthdate"
                           : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // Botón "Continue"
+                // --- Botón "Continue" ---
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

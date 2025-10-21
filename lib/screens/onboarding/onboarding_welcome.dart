@@ -1,18 +1,19 @@
 // lib/screens/onboarding/onboarding_welcome.dart
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pomodo_app/screens/onboarding/onboarding_auth.dart';
+// Quitado: import 'package:shared_preferences/shared_preferences.dart';
+// Quitado: import 'package:pomodo_app/screens/login_screen.dart';
+import 'package:pomodo_app/screens/onboarding/onboarding_name.dart'; // ✅ Importar la siguiente pantalla
 
 class OnboardingWelcome extends StatelessWidget {
   const OnboardingWelcome({super.key});
 
-  Future<void> _completeOnboarding(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('completedOnboarding', true);
-
+  // 🟢 Método corregido: Solo navega a la siguiente pantalla, NO guarda el flag.
+  void _continueToNext(BuildContext context) {
+    // Si la aplicación se reinicia aquí, el usuario verá la pantalla de bienvenida.
+    // Esto es correcto, ya que no ha completado el onboarding.
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const OnboardingAuth()),
+      MaterialPageRoute(builder: (_) => const OnboardingName()),
     );
   }
 
@@ -74,7 +75,7 @@ class OnboardingWelcome extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => _completeOnboarding(context),
+                    onPressed: () => _continueToNext(context), // ✅ Llamada corregida
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF00CFFF),
                       padding: const EdgeInsets.symmetric(vertical: 16),

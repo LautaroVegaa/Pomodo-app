@@ -1,6 +1,7 @@
+// lib/screens/onboarding/onboarding_values.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pomodo_app/screens/pomodoro_screen.dart';
+import 'package:pomodo_app/screens/login_screen.dart'; // ✅ Dirige al login luego de completar el onboarding
 
 class OnboardingValues extends StatefulWidget {
   const OnboardingValues({super.key});
@@ -12,12 +13,14 @@ class OnboardingValues extends StatefulWidget {
 class _OnboardingValuesState extends State<OnboardingValues> {
   String? _selectedValue;
 
+  /// 🔹 Guarda el valor seleccionado en memoria temporal
   void _selectValue(String value) {
     setState(() {
       _selectedValue = value;
     });
   }
 
+  /// 🟢 Finaliza el onboarding y redirige al login
   Future<void> _finishOnboarding() async {
     if (_selectedValue == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -29,12 +32,14 @@ class _OnboardingValuesState extends State<OnboardingValues> {
       return;
     }
 
+    // 🔹 Guarda el flag para no volver a mostrar el onboarding
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('completedOnboarding', true);
 
+    // 🔹 Navega al login (y de allí a PomodoroScreen si ya está autenticado)
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const PomodoroScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 
@@ -67,7 +72,7 @@ class _OnboardingValuesState extends State<OnboardingValues> {
                 ),
                 const SizedBox(height: 40),
 
-                // Opciones
+                // --- Opciones ---
                 _buildOption("Energy"),
                 const SizedBox(height: 16),
                 _buildOption("Calmness"),
@@ -78,7 +83,7 @@ class _OnboardingValuesState extends State<OnboardingValues> {
 
                 const SizedBox(height: 40),
 
-                // Botón final
+                // --- Botón final ---
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -108,9 +113,10 @@ class _OnboardingValuesState extends State<OnboardingValues> {
     );
   }
 
-  // --- Widget auxiliar para las opciones ---
+  /// 🔹 Construye las tarjetas de opción animadas
   Widget _buildOption(String value) {
     final isSelected = _selectedValue == value;
+
     return GestureDetector(
       onTap: () => _selectValue(value),
       child: AnimatedContainer(
