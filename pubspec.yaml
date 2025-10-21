@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:            # ✅ Necesario para internacionalización
+    sdk: flutter
   provider: ^6.1.2
   cupertino_icons: ^1.0.6
   supabase_flutter: ^2.5.0
@@ -24,6 +26,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true            # ✅ Habilita la generación de archivos de localización
   assets:
     - assets/icon/logo_pomodo.png   # Ícono final optimizado
     - assets/audio/                 # Carpeta de sonidos para la app
