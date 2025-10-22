@@ -12,14 +12,12 @@ class OnboardingGoals extends StatefulWidget {
 class _OnboardingGoalsState extends State<OnboardingGoals> {
   String? _selectedGoal;
 
-  /// 🔹 Guarda la opción elegida por el usuario
   void _selectGoal(String goal) {
     setState(() {
       _selectedGoal = goal;
     });
   }
 
-  /// 🟢 Valida y avanza a la siguiente pantalla
   void _continueToNext() {
     if (_selectedGoal == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -31,7 +29,6 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
       return;
     }
 
-    // 🟢 En el futuro, se puede guardar en Supabase o SharedPreferences
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const OnboardingValues()),
@@ -41,11 +38,15 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // ✅ Gradiente unificado (igual que en el resto)
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF0A0F24), Color(0xFF101C40)], // Azul oscuro Pomodō
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF050A14), // azul casi negro
+            Color(0xFF0E1A2B), // azul oscuro
+          ],
         ),
       ),
       child: Scaffold(
@@ -82,17 +83,18 @@ class _OnboardingGoalsState extends State<OnboardingGoals> {
                   child: ElevatedButton(
                     onPressed: _continueToNext,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00CFFF),
+                      backgroundColor: Colors.white, // ✅ blanco
+                      foregroundColor: Colors.black87, // texto oscuro
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 0,
                     ),
                     child: const Text(
                       'Continue',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.black,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

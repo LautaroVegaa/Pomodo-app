@@ -31,6 +31,7 @@ flutter:
   assets:
     - assets/icon/logo_pomodo.png   # Ícono final optimizado
     - assets/audio/                 # Carpeta de sonidos para la app
+    - assets/images/onb_welcome.png # 🆕 Imagen de onboarding (welcome)
 
 # ========================================================
 # CONFIGURACIÓN DEL ÍCONO DE LA APP (LANZADOR)

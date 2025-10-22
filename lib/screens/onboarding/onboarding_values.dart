@@ -13,14 +13,12 @@ class OnboardingValues extends StatefulWidget {
 class _OnboardingValuesState extends State<OnboardingValues> {
   String? _selectedValue;
 
-  /// 🔹 Guarda el valor seleccionado en memoria temporal
   void _selectValue(String value) {
     setState(() {
       _selectedValue = value;
     });
   }
 
-  /// 🟢 Finaliza el onboarding y redirige al login
   Future<void> _finishOnboarding() async {
     if (_selectedValue == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -32,11 +30,9 @@ class _OnboardingValuesState extends State<OnboardingValues> {
       return;
     }
 
-    // 🔹 Guarda el flag para no volver a mostrar el onboarding
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('completedOnboarding', true);
 
-    // 🔹 Navega al login (y de allí a PomodoroScreen si ya está autenticado)
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -46,11 +42,15 @@ class _OnboardingValuesState extends State<OnboardingValues> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // ✅ Gradiente unificado (mismo que en las otras pantallas)
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF0A0F24), Color(0xFF101C40)], // Azul oscuro Pomodō
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF050A14), // azul casi negro
+            Color(0xFF0E1A2B), // azul oscuro
+          ],
         ),
       ),
       child: Scaffold(
@@ -89,17 +89,18 @@ class _OnboardingValuesState extends State<OnboardingValues> {
                   child: ElevatedButton(
                     onPressed: _finishOnboarding,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00CFFF),
+                      backgroundColor: Colors.white, // ✅ blanco
+                      foregroundColor: Colors.black87, // texto oscuro
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
+                      elevation: 0,
                     ),
                     child: const Text(
                       'Start Pomodō',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.black,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -113,7 +114,6 @@ class _OnboardingValuesState extends State<OnboardingValues> {
     );
   }
 
-  /// 🔹 Construye las tarjetas de opción animadas
   Widget _buildOption(String value) {
     final isSelected = _selectedValue == value;
 
