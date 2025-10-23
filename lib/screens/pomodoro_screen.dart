@@ -9,6 +9,7 @@ import '../widgets/pomodoro_stats_card.dart';
 import '../widgets/pomodoro_timer_card.dart';
 import '../widgets/duration_slider_dialog.dart';
 import 'more_stats_screen.dart';
+import 'package:pomodo_app/screens/block/block_home_screen.dart';
 
 class PomodoroScreen extends StatefulWidget {
   const PomodoroScreen({super.key});
@@ -361,14 +362,14 @@ Center(
               setState(() => _currentIndex = 0); // vuelve a Focus al regresar
             });
           } else if (index == 2) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Modo enfoque activado 🔒'),
-                behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 2),
-              ),
-            );
-          }
+      // ✅ Navega al Modo Bloqueo (Fase 1: UI + estado)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BlockHomeScreen()),
+      ).then((_) {
+      setState(() => _currentIndex = 0); // vuelve a Focus al regresar
+  });
+}
         },
         backgroundColor:
             isDarkMode ? const Color(0xFF0B1120) : Colors.white,

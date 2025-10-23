@@ -11,6 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 
+// ✅ NUEVO: provider del modo bloqueo (Focus Lock)
+import 'package:pomodo_app/providers/block_provider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -88,6 +91,8 @@ class _MyAppState extends State<MyApp> {
       providers: [
         provider.ChangeNotifierProvider(create: (_) => ThemeProvider()),
         provider.ChangeNotifierProvider(create: (_) => TimerProvider()),
+        // ✅ NUEVO: registra el estado del modo bloqueo (Focus Lock)
+        provider.ChangeNotifierProvider(create: (_) => BlockProvider()),
       ],
       child: provider.Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
