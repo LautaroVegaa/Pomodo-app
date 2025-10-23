@@ -240,27 +240,6 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _signOut(context),
           ),
 
-          // 🧪 DEBUG: Botón para reiniciar el onboarding (solo visible en modo debug)
-          if (!kReleaseMode)
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: const Text(
-                  'Reiniciar Onboarding',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00CFFF),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () => _resetOnboarding(context),
-              ),
-            ),
         ],
       ),
     );

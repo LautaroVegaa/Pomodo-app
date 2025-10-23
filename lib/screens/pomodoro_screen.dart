@@ -21,6 +21,9 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   String? displayName;
   bool loading = true;
 
+  // ✅ NUEVO: índice para manejar el ítem activo del footer
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -332,33 +335,61 @@ Center(
 
                   const SizedBox(height: 24),
                   const PomodoroStatsCard(),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MoreStatsScreen()),
-                        );
-                      },
-                      child: Text(
-                        "Ver más estadísticas",
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
-                      ),
-                    ),
-                  ),
+
+                  // ❌ Se eliminó el botón "Ver más estadísticas"
+                  // porque ahora el acceso está en el footer (ícono Stats)
+
                   const SizedBox(height: 24),
                 ],
               ),
             ),
+
+      // ✅ FOOTER con íconos Focus / Stats / Block
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+
+          if (index == 1) {
+            // ✅ Navega a estadísticas y al volver, resetea el ícono activo a "Focus"
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MoreStatsScreen(),
+              ),
+            ).then((_) {
+              setState(() => _currentIndex = 0); // vuelve a Focus al regresar
+            });
+          } else if (index == 2) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Modo enfoque activado 🔒'),
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        backgroundColor:
+            isDarkMode ? const Color(0xFF0B1120) : Colors.white,
+        selectedItemColor: const Color(0xFF3579F6),
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Focus',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_outlined),
+            label: 'Stats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shield_outlined),
+            label: 'Block',
+          ),
+        ],
+      ), // ✅ Fin del footer
     );
   }
 }
