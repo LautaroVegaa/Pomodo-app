@@ -11,6 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 
+// ✅ NUEVO: import del contenedor con bottom nav persistente
+import 'package:pomodo_app/screens/main_scaffold.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -76,8 +79,8 @@ class _MyAppState extends State<MyApp> {
       // 🥇 1. Si NO completó el onboarding (es nuevo) → lo mostramos
       home = const OnboardingWelcome();
     } else if (_session != null) {
-      // 🥈 2. Si completó el onboarding Y hay sesión iniciada → Pomodoro
-      home = const PomodoroScreen();
+      // 🥈 2. Si completó el onboarding Y hay sesión iniciada → contenedor con bottom nav persistente
+      home = const MainScaffold(); // ← reemplaza a PomodoroScreen manteniendo la lógica
     } else {
       // 🥉 3. Si completó el onboarding pero NO tiene sesión → Login
       home = const LoginScreen();

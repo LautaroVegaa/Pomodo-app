@@ -320,38 +320,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MoreStatsScreen(),
-              ),
-            ).then((_) {
-              setState(() => _currentIndex = 0);
-            });
-          }
-        },
-        backgroundColor:
-            isDarkMode ? const Color(0xFF0B1120) : Colors.white,
-        selectedItemColor: const Color(0xFF3579F6),
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Focus',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            label: 'Stats',
-          ),
-        ],
-      ),
     );
   }
 }
