@@ -35,7 +35,7 @@ class OverlayController(private val context: Context) {
         val txtMsg = view.findViewById<TextView>(R.id.txtMessage)
 
         txtMsg.text =
-            "Not quite yet.\nYou can’t use this app while your Pomodō focus is active."
+            "☕ Take a breath.\nThis moment belongs to your focus."
 
         btnBack.setOnClickListener {
             // 🔒 Evitar flash: ocultar overlay ANTES de ir a Pomodō

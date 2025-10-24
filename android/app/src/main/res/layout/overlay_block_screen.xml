@@ -3,28 +3,30 @@
     android:id="@+id/overlayRoot"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#CC0D0D0D"
+    android:background="#FF111827"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="32dp">
 
     <TextView
         android:id="@+id/txtMessage"
-        android:text="Not quite yet. You can’t use this app while your Pomodō focus is active."
-        android:textColor="@android:color/white"
+        android:text="☕ Take a breath.\nThis moment belongs to your focus."
+        android:textColor="#F9FAFB"
         android:textSize="20sp"
         android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginBottom="32dp"
+        android:fontFamily="sans-serif-medium" />
 
     <Button
         android:id="@+id/btnBack"
-        android:text="Back to Pomodō"
+        android:text="Stay Focused"
         android:textAllCaps="false"
-        android:background="@android:color/white"
-        android:textColor="#0D0D0D"
+        android:background="@drawable/pomodo_button"
+        android:textColor="#FFFFFF"
         android:padding="16dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium" />
 </LinearLayout>
