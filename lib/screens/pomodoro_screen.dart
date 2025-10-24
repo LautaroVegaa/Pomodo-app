@@ -264,59 +264,63 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Center(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 140,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "¡Mantén el enfoque!",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
-                            child: Text(
-                              timerProvider.currentPhrase.isNotEmpty
-                                  ? timerProvider.currentPhrase
-                                  : "Cada ciclo completado te acerca más a tus objetivos de estudio.",
-                              key: ValueKey(timerProvider.currentPhrase),
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(color: Colors.white70),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+Center(
+  child: Container(
+    width: MediaQuery.of(context).size.width * 0.9,
+    height: 70,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    decoration: BoxDecoration(
+      color: const Color.fromARGB(90, 21, 1, 75), // azulado translúcido
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: const Color.fromARGB(255, 44, 94, 175), // azul-violeta más frío
+        width: 1,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: const Color.fromARGB(255, 46, 102, 192).withOpacity(0.4),
+          blurRadius: 10,
+          spreadRadius: 0.5,
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.auto_awesome, // ✨
+          color: Color(0xFF93C5FD), // azul-lavanda para el ícono
+          size: 18,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            child: Text(
+              timerProvider.currentPhrase.isNotEmpty
+                  ? timerProvider.currentPhrase
+                  : "Silencia el ruido. Escuchá tu propósito.",
+              key: ValueKey(timerProvider.currentPhrase),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withOpacity(0.95),
+                    fontSize: 14,
+                    height: 1.4,
+                    fontWeight: FontWeight.w400,
                   ),
-                  const SizedBox(height: 24),
-                  const PomodoroStatsCard(),
-                  const SizedBox(height: 24),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+const SizedBox(height: 24),
+const PomodoroStatsCard(),
+const SizedBox(height: 24),
+
+
                 ],
               ),
             ),
