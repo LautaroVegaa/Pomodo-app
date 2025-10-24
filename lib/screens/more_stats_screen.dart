@@ -134,16 +134,14 @@ class _MoreStatsScreenState extends State<MoreStatsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          "Más Estadísticas",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
+    automaticallyImplyLeading: false, // ✅ sin botón de retroceso
+    title: const Text(
+    "Más Estadísticas",
+    style: TextStyle(fontWeight: FontWeight.bold),
+  ),
+  centerTitle: true,
+),
+
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
