@@ -3,6 +3,7 @@ import 'package:pomodo_app/screens/pomodoro_screen.dart';
 import 'package:pomodo_app/screens/register_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/custom_text_field.dart';
+import '../services/screen_time_service.dart'; // ✅ NUEVO: import para pedir permisos
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,8 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.session != null && response.user != null) {
-        // 🔹 Guardamos la sesión localmente (Supabase lo maneja automáticamente).
-        // Solo navegamos a la pantalla principal.
+        // ✅ NUEVO BLOQUE: pedir permiso solo si no está concedido
+        final hasPermission =
+            await ScreenTimeService.checkAuthorizationStatus();
+
+        if (!hasPermission && mounted) {
+          await ScreenTimeService.requestWithDialog(context);
+        }
+
+        // 🔹 Navegamos a la pantalla principal normalmente
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const PomodoroScreen()),

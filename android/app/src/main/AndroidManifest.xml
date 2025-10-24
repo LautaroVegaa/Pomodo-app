@@ -1,7 +1,19 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.app_pomodo">
 
     <!-- ✅ Permiso necesario para listar apps instaladas (solo lectura) -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- ✅ Permisos requeridos para el sistema de bloqueo tipo Focus Plant -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- 🔔 Permiso de notificaciones -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="Pomodō"
@@ -17,9 +29,11 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
+
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -29,10 +43,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            <service
+                android:name=".FocusService"
+                android:exported="false"
+                android:foregroundServiceType="mediaProjection|dataSync" />
     </application>
-
-    <!-- 🔔 Permiso de notificaciones (ya existente) -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- ✅ Permite consultar apps instaladas para el plugin device_apps -->
     <queries>

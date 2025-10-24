@@ -9,7 +9,6 @@ import '../widgets/pomodoro_stats_card.dart';
 import '../widgets/pomodoro_timer_card.dart';
 import '../widgets/duration_slider_dialog.dart';
 import 'more_stats_screen.dart';
-import 'package:pomodo_app/screens/block/block_home_screen.dart';
 
 class PomodoroScreen extends StatefulWidget {
   const PomodoroScreen({super.key});
@@ -283,93 +282,82 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   const SizedBox(height: 24),
 
                   // Card de motivación
-Center(
-  child: Container(
-    width: MediaQuery.of(context).size.width * 0.9, // ✅ se adapta al ancho del dispositivo
-    height: 140, // ✅ altura fija
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: const Color(0xFF8B5CF6),
-      borderRadius: BorderRadius.circular(8),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center, // ✅ centra verticalmente
-      children: [
-        Text(
-          "¡Mantén el enfoque!",
-          textAlign: TextAlign.center,
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-        ),
-        const SizedBox(height: 8),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400), // ✨ animación suave
-          child: Text(
-            timerProvider.currentPhrase.isNotEmpty
-                ? timerProvider.currentPhrase
-                : "Cada ciclo completado te acerca más a tus objetivos de estudio.",
-            key: ValueKey(timerProvider.currentPhrase),
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Colors.white70),
-          ),
-        ),
-      ],
-    ),
-  ),
-),
+                  Center(
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      height: 140,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "¡Mantén el enfoque!",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          AnimatedSwitcher(
+                            duration:
+                                const Duration(milliseconds: 400),
+                            child: Text(
+                              timerProvider.currentPhrase.isNotEmpty
+                                  ? timerProvider.currentPhrase
+                                  : "Cada ciclo completado te acerca más a tus objetivos de estudio.",
+                              key: ValueKey(timerProvider.currentPhrase),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                   const SizedBox(height: 24),
                   const PomodoroStatsCard(),
-
-                  // ❌ Se eliminó el botón "Ver más estadísticas"
-                  // porque ahora el acceso está en el footer (ícono Stats)
-
                   const SizedBox(height: 24),
                 ],
               ),
             ),
 
-      // ✅ FOOTER con íconos Focus / Stats / Block
+      // ✅ FOOTER con íconos Focus / Stats (sin Block)
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() => _currentIndex = index);
 
           if (index == 1) {
-            // ✅ Navega a estadísticas y al volver, resetea el ícono activo a "Focus"
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const MoreStatsScreen(),
               ),
             ).then((_) {
-              setState(() => _currentIndex = 0); // vuelve a Focus al regresar
+              setState(() => _currentIndex = 0);
             });
-          } else if (index == 2) {
-      // ✅ Navega al Modo Bloqueo (Fase 1: UI + estado)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const BlockHomeScreen()),
-      ).then((_) {
-      setState(() => _currentIndex = 0); // vuelve a Focus al regresar
-  });
-}
+          }
+          // 🟣 El índice 2 (Block) fue removido, se reemplazará por Focus Lock en futuras versiones
         },
         backgroundColor:
             isDarkMode ? const Color(0xFF0B1120) : Colors.white,
@@ -385,12 +373,8 @@ Center(
             icon: Icon(Icons.bar_chart_outlined),
             label: 'Stats',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shield_outlined),
-            label: 'Block',
-          ),
         ],
-      ), // ✅ Fin del footer
+      ),
     );
   }
 }

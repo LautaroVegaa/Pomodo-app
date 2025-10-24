@@ -22,7 +22,6 @@ dependencies:
   # ========================================================
   # 🧩 Dependencias nuevas (Fase 2: Focus Lock con apps reales)
   # ========================================================
-  device_apps: ^2.2.0              # 📱 Para listar apps instaladas (Android)
   flutter_svg: ^2.0.9              # 🖼️ Para usar íconos SVG de apps
   shared_preferences: ^2.3.2       # 💾 Persistencia local (ya usada, pero aseguramos versión estable)
 

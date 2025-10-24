@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as provider; // AÑADIR PREFIJO 'provider'
 import '../providers/timer_provider.dart';
+import '../services/screen_time_service.dart'; // ✅ acceso al bloqueo nativo
 
 class PomodoroTimerCard extends StatelessWidget {
   const PomodoroTimerCard({super.key});
 
   // Función para obtener el texto del estado actual
   String _getStatusText(TimerProvider timer) {
-    // Si no está corriendo, muestra "Pausado"
     if (!timer.isRunning &&
         timer.remainingTimeSeconds == timer.workDurationMinutes * 60) {
-      return "Pausado"; // Estado inicial o reseteado
+      return "Pausado";
     }
 
     switch (timer.currentPhase) {
@@ -25,7 +25,6 @@ class PomodoroTimerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usar el prefijo 'provider'
     final timerProvider = provider.Provider.of<TimerProvider>(context);
 
     return Card(
@@ -33,7 +32,6 @@ class PomodoroTimerCard extends StatelessWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // El texto del estado ahora siempre está visible
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -79,7 +77,28 @@ class PomodoroTimerCard extends StatelessWidget {
                     color: Colors.white,
                     size: 36,
                   ),
-                  onPressed: () => timerProvider.startStopTimer(),
+                  onPressed: () async {
+                    // 🔹 Mantiene tu lógica original
+                    timerProvider.startStopTimer();
+
+                    // ✅ Bloquea solo en modo de trabajo
+                    if (timerProvider.isRunning &&
+                        timerProvider.currentPhase == PomodoroPhase.work) {
+                      final hasPermission =
+                          await ScreenTimeService.checkAuthorizationStatus();
+                      if (!hasPermission) {
+                        await ScreenTimeService.requestAuthorization();
+                      }
+
+                      // Inicia bloqueo solo durante el trabajo
+                      await ScreenTimeService.startFocusSession(
+                        minutes: timerProvider.workDurationMinutes,
+                      );
+                    } else {
+                      // 🧠 Si pausó, terminó o no es fase de trabajo → desbloquea
+                      await ScreenTimeService.endFocusSession();
+                    }
+                  },
                 ),
                 const SizedBox(width: 20),
                 IconButton(
@@ -88,13 +107,15 @@ class PomodoroTimerCard extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                   ),
                   icon: const Icon(Icons.refresh, size: 28),
-                  onPressed: () {
-                    // Si el timer está corriendo, salta la fase. Si está pausado, hace reset.
+                  onPressed: () async {
                     if (timerProvider.isRunning) {
                       timerProvider.skipPhase();
                     } else {
                       timerProvider.resetTimer();
                     }
+
+                    // ✅ Siempre libera bloqueo al cambiar de fase o resetear
+                    await ScreenTimeService.endFocusSession();
                   },
                 ),
               ],
@@ -108,13 +129,11 @@ class PomodoroTimerCard extends StatelessWidget {
   double _getProgressValue(TimerProvider timer) {
     switch (timer.currentPhase) {
       case PomodoroPhase.work:
-        return timer.remainingTimeSeconds /
-            (timer.workDurationMinutes * 60);
+        return timer.remainingTimeSeconds / (timer.workDurationMinutes * 60);
       case PomodoroPhase.shortBreak:
         return timer.remainingTimeSeconds /
             (timer.shortBreakDurationMinutes * 60);
       case PomodoroPhase.longBreak:
-        // ✅ FIX: ahora usa la duración dinámica del descanso largo
         return timer.remainingTimeSeconds /
             (timer.longBreakDurationMinutes * 60);
     }
