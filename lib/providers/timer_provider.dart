@@ -35,42 +35,43 @@ class TimerProvider extends ChangeNotifier {
   int _currentStreak = 0;
   int get currentStreak => _currentStreak;
 
-  // --- FRASES MOTIVACIONALES ---
-  final List<String> focusPhrases = [
-    "Nadie lo va a hacer por vos. O lo hacés ahora, o seguís soñando con hacerlo algún día.",
-    "No te distraigas: cada vez que lo hacés, elegís postergar la vida que querés.",
-    "Mientras dudás, alguien más está avanzando.",
-    "El tiempo que perdés no vuelve. Nunca.",
-    "No estás cansado. Estás evitando crecer.",
-    "No busques excusas, buscá resultados.",
-    "Cada Pomodoro que terminás es una promesa cumplida con vos mismo. Romperla duele más.",
-    "Querías resultados distintos, pero seguís haciendo lo mismo.",
-    "No sos tu potencial, sos lo que hacés cada día.",
-    "El sacrificio de hoy es la libertad de mañana.",
-    "Tu futuro depende de lo que hagas en los próximos 25 minutos, no mañana.",
-    "Si no soportás el esfuerzo, vas a tener que soportar las consecuencias.",
-    "Tus metas no te están esperando, se las está llevando otro que sí trabaja.",
-    "Cada interrupción es una forma de rendirte un poco.",
-    "No te falta tiempo. Te falta decisión.",
-  ];
+ // --- DATOS Y CONCIENTIZACIÓN (basados en Franco Pisso) ---
 
-  final List<String> breakPhrases = [
-    "Respirá. No estás frenando, estás recargando.",
-    "Tomate este momento para recuperar energía, no para rendirte.",
-    "Descansar también es parte del trabajo, si sabés volver.",
-    "Soltá un poco, pero no olvides por qué empezaste.",
-    "Este descanso no es premio ni castigo, es estrategia.",
-    "Aflojá el cuerpo, pero mantené viva la intención.",
-    "Un respiro no borra el progreso, lo refuerza.",
-    "Tu mente necesita pausa, no abandono.",
-    "Usá este descanso para pensar en lo que viene, no en lo que falta.",
-    "Relajate, pero sabé que el reloj vuelve a correr pronto.",
-    "Cuidarte también es disciplina.",
-    "Este momento es tuyo, aprovechalo para volver más claro.",
-    "No se trata de parar, sino de volver mejor.",
-    "Un buen descanso sostiene un buen rendimiento.",
-    "Respirá profundo. La constancia también se entrena descansando.",
-  ];
+final List<String> focusPhrases = [
+  "Tu cerebro tarda más de 20 minutos en recuperar el foco después de una distracción.",
+  "Cambiar de estímulo cada 10 segundos entrena la dispersión mental.",
+  "La dopamina se libera antes del placer, no cuando lo disfrutás.",
+  "El exceso de estímulos debilita tu tolerancia al aburrimiento.",
+  "Cada video corto enseña a tu mente a buscar recompensa inmediata.",
+  "Las emociones rápidas agotan tu capacidad de pensar lento.",
+  "El foco es un músculo: si no lo usás, se atrofia.",
+  "Tu atención no se perdió, se entrenó para cambiar de tema cada segundo.",
+  "La dopamina fácil secuestra tu curiosidad natural.",
+  "La sobreestimulación te impide sostener atención profunda.",
+  "El cerebro cansado evita tareas que requieren esfuerzo.",
+  "El scroll constante entrena la procrastinación.",
+  "Cada notificación compite con tu pensamiento más importante.",
+  "La mente dispersa busca escape, no aprendizaje.",
+  "Cuanto más emoción instantánea consumís, menos foco retenés.",
+];
+
+final List<String> breakPhrases = [
+  "Después de horas de redes no estás descansado: estás sobrecargado.",
+  "La 'resaca emocional' es real: tu mente se agota por exceso de emociones.",
+  "Sentirte vacío después del scroll es un signo de sobreestimulación.",
+  "No estás cansado de trabajar: estás cansado de sentir sin parar.",
+  "Dormir no cura el agotamiento emocional del scroll nocturno.",
+  "Una pausa sin pantalla es descanso real.",
+  "El aburrimiento activa la creatividad y restaura el foco.",
+  "Tu mente se repara cuando no recibe estímulos nuevos.",
+  "Cada minuto sin dopamina fácil es un entrenamiento de calma.",
+  "Ver contenido emocionalmente intenso genera agotamiento invisible.",
+  "La calma activa tu corteza prefrontal, la parte que decide bien.",
+  "La mente necesita silencio tanto como sueño.",
+  "Evitar pantallas antes de dormir mejora tu energía al día siguiente.",
+  "El descanso consciente reequilibra tu sistema nervioso.",
+  "La dopamina baja cuando frenás, y ahí empieza la claridad.",
+];
 
   String _currentPhrase = "";
   String get currentPhrase => _currentPhrase;
