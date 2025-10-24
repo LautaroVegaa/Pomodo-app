@@ -21,7 +21,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   String? displayName;
   bool loading = true;
 
-  // ✅ NUEVO: índice para manejar el ítem activo del footer
   int _currentIndex = 0;
 
   @override
@@ -36,7 +35,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       final user = supabase.auth.currentUser;
 
       if (user != null) {
-        // ✅ Se obtiene directamente el nombre desde user_metadata
         final fullName = user.userMetadata?['full_name'] as String?;
 
         setState(() {
@@ -64,71 +62,62 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Pomodō",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+  elevation: 0,
+  backgroundColor: Colors.transparent, // mantiene fondo coherente con el tema
+  centerTitle: false,
+  title: Padding(
+    padding: const EdgeInsets.only(top: 8.0), // 👈 más “aire” arriba
+    child: RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: 'Pomodō',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+              // ✅ ahora toma color del AppBarTheme según el modo (claro/oscuro)
+              color: Theme.of(context).appBarTheme.titleTextStyle?.color
+                  ?? Theme.of(context).textTheme.bodyLarge?.color,
+              letterSpacing: 0.5,
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const SettingsScreen()),
-              );
-            },
           ),
-          const SizedBox(width: 8),
+          TextSpan(
+            text: '.',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 24,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
         ],
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
+    ),
+  ),
+  actions: [
+    IconButton(
+      icon: Icon(
+        Icons.settings_outlined,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+      ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+        );
+      },
+    ),
+    const SizedBox(width: 8),
+  ],
+),
+
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Inicio de la zona centrada (Bienvenido)
-                  Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 8.0, right: 8.0, bottom: 8.0),
-                          child: Text(
-                            "Bienvenido, ${displayName ?? 'Usuario'}",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 8.0, right: 8.0, bottom: 24.0),
-                          child: Text(
-                            "Técnica Pomodoro para estudiantes",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(color: Colors.grey),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Fin de la zona centrada
+                  // 🔹 Se removió el bloque de bienvenida y subtítulo
                   const PomodoroTimerCard(),
                   const SizedBox(height: 24),
                   Row(
@@ -159,28 +148,23 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                               builder: (BuildContext dialogContext) {
                                 return DurationSliderDialog(
                                   title: "Duración del trabajo",
-                                  initialValue: timerProvider
-                                      .workDurationMinutes
-                                      .toDouble(),
+                                  initialValue:
+                                      timerProvider.workDurationMinutes.toDouble(),
                                   onChanged: (value) =>
-                                      timerProvider.setWorkDuration(
-                                          value.toInt()),
+                                      timerProvider.setWorkDuration(value.toInt()),
                                   min: 5,
                                   max: 60,
                                   divisions: 11,
-                                  formatLabel: (value) =>
-                                      "${value.toInt()} minutos",
+                                  formatLabel: (value) => "${value.toInt()} minutos",
                                 );
                               },
                             );
                           },
                           child: Container(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 24),
+                            padding: const EdgeInsets.symmetric(vertical: 24),
                             decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? const Color(0xFF1F2937)
-                                  : Colors.grey.shade100,
+                              color:
+                                  isDarkMode ? const Color(0xFF1F2937) : Colors.grey.shade100,
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: [
                                 BoxShadow(
@@ -280,8 +264,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // Card de motivación
                   Center(
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.9,
@@ -315,8 +297,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                           ),
                           const SizedBox(height: 8),
                           AnimatedSwitcher(
-                            duration:
-                                const Duration(milliseconds: 400),
+                            duration: const Duration(milliseconds: 400),
                             child: Text(
                               timerProvider.currentPhrase.isNotEmpty
                                   ? timerProvider.currentPhrase
@@ -333,15 +314,12 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
                   const PomodoroStatsCard(),
                   const SizedBox(height: 24),
                 ],
               ),
             ),
-
-      // ✅ FOOTER con íconos Focus / Stats (sin Block)
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -357,7 +335,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
               setState(() => _currentIndex = 0);
             });
           }
-          // 🟣 El índice 2 (Block) fue removido, se reemplazará por Focus Lock en futuras versiones
         },
         backgroundColor:
             isDarkMode ? const Color(0xFF0B1120) : Colors.white,

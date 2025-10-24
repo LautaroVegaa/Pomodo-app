@@ -6,7 +6,6 @@ import '../services/screen_time_service.dart'; // ✅ acceso al bloqueo nativo
 class PomodoroTimerCard extends StatelessWidget {
   const PomodoroTimerCard({super.key});
 
-  // Función para obtener el texto del estado actual
   String _getStatusText(TimerProvider timer) {
     if (!timer.isRunning &&
         timer.remainingTimeSeconds == timer.workDurationMinutes * 60) {
@@ -26,8 +25,17 @@ class PomodoroTimerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timerProvider = provider.Provider.of<TimerProvider>(context);
+    // Variables para el manejo de tema en la tarjeta
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).primaryColor;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
 
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 0,
+      color: Theme.of(context).cardColor, // ✅ usa el color del tema
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -64,24 +72,16 @@ class PomodoroTimerCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+
+            // 🔹 Botones con estilo minimalista tipo glassmorphism
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton.filled(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    padding: const EdgeInsets.all(20),
-                  ),
-                  icon: Icon(
-                    timerProvider.isRunning ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                  onPressed: () async {
-                    // 🔹 Mantiene tu lógica original
+                // ▶️ Start / Pause button
+                GestureDetector(
+                  onTap: () async {
                     timerProvider.startStopTimer();
 
-                    // ✅ Bloquea solo en modo de trabajo
                     if (timerProvider.isRunning &&
                         timerProvider.currentPhase == PomodoroPhase.work) {
                       final hasPermission =
@@ -89,34 +89,79 @@ class PomodoroTimerCard extends StatelessWidget {
                       if (!hasPermission) {
                         await ScreenTimeService.requestAuthorization();
                       }
-
-                      // Inicia bloqueo solo durante el trabajo
                       await ScreenTimeService.startFocusSession(
                         minutes: timerProvider.workDurationMinutes,
                       );
                     } else {
-                      // 🧠 Si pausó, terminó o no es fase de trabajo → desbloquea
                       await ScreenTimeService.endFocusSession();
                     }
                   },
-                ),
-                const SizedBox(width: 20),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.grey.withOpacity(0.2),
-                    padding: const EdgeInsets.all(16),
+                  child: Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      // CORRECCIÓN: Estilos condicionales para modo claro
+                      color: isDarkMode
+                          ? Colors.white.withOpacity(0.05) // Fondo translúcido oscuro
+                          : Colors.grey.shade100, // Fondo gris claro
+                      border: Border.all(
+                        color: isDarkMode
+                            ? Colors.white.withOpacity(0.1) // Borde sutil oscuro
+                            : Colors.grey.shade300, // Borde gris claro
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Icon(
+                      timerProvider.isRunning
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      // CORRECCIÓN: Color de icono condicional para modo claro
+                      color: timerProvider.isRunning
+                          ? isDarkMode
+                              ? Colors.white.withOpacity(0.9)
+                              : textColor.withOpacity(0.9) // Color de texto oscuro para pausa
+                          : primaryColor, // Color principal para iniciar
+                      size: 22,
+                    ),
                   ),
-                  icon: const Icon(Icons.refresh, size: 28),
-                  onPressed: () async {
+                ),
+                const SizedBox(width: 22),
+
+                // 🔁 Restart / Skip button
+                GestureDetector(
+                  onTap: () async {
                     if (timerProvider.isRunning) {
                       timerProvider.skipPhase();
                     } else {
                       timerProvider.resetTimer();
                     }
 
-                    // ✅ Siempre libera bloqueo al cambiar de fase o resetear
                     await ScreenTimeService.endFocusSession();
                   },
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      // CORRECCIÓN: Estilos condicionales para modo claro
+                      color: isDarkMode
+                          ? Colors.white.withOpacity(0.05) // Fondo translúcido oscuro
+                          : Colors.grey.shade100, // Fondo gris claro
+                      border: Border.all(
+                        color: isDarkMode
+                            ? Colors.white.withOpacity(0.1) // Borde sutil oscuro
+                            : Colors.grey.shade300, // Borde gris claro
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.refresh_rounded,
+                      // CORRECCIÓN: Color de icono condicional para modo claro
+                      color: isDarkMode ? Colors.white70 : Colors.grey.shade600, // Gris oscuro
+                      size: 20,
+                    ),
+                  ),
                 ),
               ],
             ),
