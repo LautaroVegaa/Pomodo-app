@@ -55,7 +55,7 @@ class ScreenTimeService {
     }
   }
 
-  // ✅ NUEVO: Popup amigable al estilo Focus Plant (solo Android)
+  // ✅ NUEVO: Popup amigable al estilo Pomodō (solo Android)
   static Future<bool> requestWithDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
@@ -67,7 +67,7 @@ class ScreenTimeService {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             title: Row(
               children: [
-                Icon(Icons.spa, color: Theme.of(context).primaryColor, size: 28),
+                Icon(Icons.access_time, color: Theme.of(context).primaryColor, size: 28),
                 const SizedBox(width: 8),
                 const Text(
                   "Permiso necesario",
@@ -77,10 +77,9 @@ class ScreenTimeService {
             ),
             content: const Text(
               "Pomodō necesita permiso para acceder al tiempo de uso y "
-              "bloquear otras apps durante tus sesiones de enfoque.\n\n"
-              "Esto te ayudará a mantener la concentración sin distracciones, "
-              "igual que Focus Plant 🌱",
-              style: TextStyle(fontSize: 15),
+              "bloquear otras aplicaciones durante tus sesiones de enfoque.\n\n"
+              "Esto le permite ayudarte a mantener la concentración sin distracciones.",
+              style: TextStyle(fontSize: 15, height: 1.5),
             ),
             actions: [
               TextButton(
@@ -92,6 +91,12 @@ class ScreenTimeService {
                   Navigator.pop(context, true);
                   await requestAuthorization(); // 🔹 abre la pantalla del sistema
                 },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: const Text("Conceder permiso"),
               ),
             ],
