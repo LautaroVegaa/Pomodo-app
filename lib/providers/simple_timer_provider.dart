@@ -3,8 +3,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:math'; // Para Random
+// ✅ 1. Importar los servicios
+import '../services/notification_service.dart';
+import '../services/audio_service.dart';
 
 class SimpleTimerProvider extends ChangeNotifier {
+  // ✅ 2. Añadir instancias de los servicios
+  final NotificationService _notificationService = NotificationService();
+  final AudioService _audioService = AudioService();
+
   int _initialDurationSeconds = 10 * 60; // 10 minutos por defecto
   int _remainingTimeSeconds = 10 * 60;
   Timer? _timer;
@@ -32,12 +39,12 @@ class SimpleTimerProvider extends ChangeNotifier {
   // Constructor
   SimpleTimerProvider() {
     _updateTip(); // Establecer el primer tip al crear el provider
+     // No es necesario inicializar servicios aquí, NotificationService se auto-inicializa
   }
 
   // Método para actualizar el tip aleatoriamente
   void _updateTip() {
     final random = Random();
-    // Evitar seleccionar el mismo tip dos veces seguidas (opcional)
     String newTip = _currentTip;
     if (timerTips.length > 1) {
       while (newTip == _currentTip) {
@@ -47,7 +54,7 @@ class SimpleTimerProvider extends ChangeNotifier {
       newTip = timerTips[0];
     }
     _currentTip = newTip;
-    // No notificamos aquí directamente, se hará a través de los métodos de control
+    // No notificamos aquí directamente
   }
 
   // Formatear tiempo restante (MM:SS)
@@ -62,8 +69,7 @@ class SimpleTimerProvider extends ChangeNotifier {
     if (!_isRunning) {
       _initialDurationSeconds = seconds >= 0 ? seconds : 0;
       _remainingTimeSeconds = _initialDurationSeconds;
-      // _updateTip(); // ❗️❗️ CORRECCIÓN: NO actualizar el tip aquí ❗️❗️
-      notifyListeners(); // Notificar solo cambio de duración/tiempo restante
+      notifyListeners();
     }
   }
 
@@ -77,9 +83,23 @@ class SimpleTimerProvider extends ChangeNotifier {
       } else {
         _timer?.cancel();
         _isRunning = false;
+
+        // ✅ 3. LLAMAR A LOS SERVICIOS AL TERMINAR
+        _notificationService.showSimpleTimerNotification(
+            initialDuration: _initialDurationSeconds // Pasa la duración inicial
+        );
+        _audioService.playPomodoroSound(); // Reutilizamos el mismo sonido
+
         _updateTip(); // Actualizar tip al finalizar
       }
-      notifyListeners(); // Notificar cambio de tiempo restante (y estado si finalizó)
+      // Notificar cambio de tiempo restante (y estado si finalizó)
+      // Asegurarse de que el widget todavía exista antes de notificar
+      // Esto es una buena práctica general, aunque Provider ya maneja esto.
+      // if (mounted) { // Esta comprobación no es válida en ChangeNotifier
+           notifyListeners();
+      // } else {
+      //     _timer?.cancel(); // Si el widget ya no existe, cancelar el timer
+      // }
     });
     notifyListeners(); // Notificar cambio a _isRunning
   }
@@ -88,7 +108,8 @@ class SimpleTimerProvider extends ChangeNotifier {
     if (!_isRunning) return;
     _timer?.cancel();
     _isRunning = false;
-    _updateTip(); // Actualizar tip al pausar
+    _audioService.stopSound(); // ✅ 4. Detener sonido al pausar
+    _updateTip();
     notifyListeners();
   }
 
@@ -96,13 +117,15 @@ class SimpleTimerProvider extends ChangeNotifier {
     _timer?.cancel();
     _isRunning = false;
     _remainingTimeSeconds = _initialDurationSeconds;
-    _updateTip(); // Actualizar tip al resetear
+    _audioService.stopSound(); // ✅ 4. Detener sonido al resetear
+    _updateTip();
     notifyListeners();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _audioService.dispose(); // ✅ 5. Liberar recursos de audio
     super.dispose();
   }
 }
