@@ -1,6 +1,9 @@
+// lib/screens/main_scaffold.dart
+
 import 'package:flutter/material.dart';
-import 'package:pomodo_app/screens/pomodoro_screen.dart';
+// import 'package:pomodo_app/screens/pomodoro_screen.dart'; // REMOVER ESTE IMPORT
 import 'package:pomodo_app/screens/more_stats_screen.dart';
+import 'package:pomodo_app/screens/focus_timer_tabs.dart'; // ✅ PASO 4.2: AÑADIR ESTE IMPORT
 
 /// Contenedor principal con navegación inferior persistente.
 /// Mantiene el footer visible entre Focus y Stats
@@ -15,9 +18,10 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
 
-  // 🧩 Pantallas principales de Pomodō (ya existentes)
+  // 🧩 Pantallas principales de Pomodō
   final List<Widget> _screens = const [
-    PomodoroScreen(),
+    // ✅ PASO 4.2: REEMPLAZAR PomodoroScreen por FocusTimerTabs
+    FocusTimerTabs(),
     MoreStatsScreen(),
   ];
 
@@ -49,8 +53,8 @@ class _MainScaffoldState extends State<MainScaffold> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.timer_outlined),
-            label: 'Focus',
+            icon: Icon(Icons.timer_outlined), // Podrías cambiar a Icons.psychology_outlined si prefieres
+            label: 'Focus', // La etiqueta sigue siendo 'Focus', pero ahora contiene las 3 pestañas
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_outlined),

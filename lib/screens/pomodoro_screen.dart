@@ -11,7 +11,9 @@ import '../widgets/duration_slider_dialog.dart';
 import 'more_stats_screen.dart';
 
 class PomodoroScreen extends StatefulWidget {
-  const PomodoroScreen({super.key});
+  // A. Añadir parámetro showAppBar con valor por defecto true
+  final bool showAppBar; 
+  const PomodoroScreen({super.key, this.showAppBar = true});
 
   @override
   State<PomodoroScreen> createState() => _PomodoroScreenState();
@@ -61,54 +63,55 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-  elevation: 0,
-  backgroundColor: Colors.transparent, // mantiene fondo coherente con el tema
-  centerTitle: false,
-  title: Padding(
-    padding: const EdgeInsets.only(top: 8.0), // 👈 más “aire” arriba
-    child: RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: 'Pomodō',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 22,
-              // ✅ ahora toma color del AppBarTheme según el modo (claro/oscuro)
-              color: Theme.of(context).appBarTheme.titleTextStyle?.color
-                  ?? Theme.of(context).textTheme.bodyLarge?.color,
-              letterSpacing: 0.5,
+      // B. Hacer el AppBar condicional usando widget.showAppBar
+      appBar: widget.showAppBar ? AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent, // mantiene fondo coherente con el tema
+        centerTitle: false,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 8.0), // 👈 más “aire” arriba
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Pomodō',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 22,
+                    // ✅ ahora toma color del AppBarTheme según el modo (claro/oscuro)
+                    color: Theme.of(context).appBarTheme.titleTextStyle?.color
+                        ?? Theme.of(context).textTheme.bodyLarge?.color,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                TextSpan(
+                  text: '.',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 24,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ],
             ),
           ),
-          TextSpan(
-            text: '.',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 24,
-              color: Theme.of(context).primaryColor,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.settings_outlined,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
           ),
+          const SizedBox(width: 8),
         ],
-      ),
-    ),
-  ),
-  actions: [
-    IconButton(
-      icon: Icon(
-        Icons.settings_outlined,
-        color: Theme.of(context).textTheme.bodyLarge?.color,
-      ),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SettingsScreen()),
-        );
-      },
-    ),
-    const SizedBox(width: 8),
-  ],
-),
+      ) : null, // Si showAppBar es false, no se muestra el AppBar.
 
       body: loading
           ? const Center(child: CircularProgressIndicator())

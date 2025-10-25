@@ -134,7 +134,7 @@ class _MoreStatsScreenState extends State<MoreStatsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-    automaticallyImplyLeading: false, // ✅ sin botón de retroceso
+    automaticallyImplyLeading: false, // sin botón de retroceso
     title: const Text(
     "Más Estadísticas",
     style: TextStyle(fontWeight: FontWeight.bold),

@@ -3,16 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:pomodo_app/providers/theme_provider.dart';
 import 'package:pomodo_app/providers/timer_provider.dart';
 import 'package:pomodo_app/screens/login_screen.dart';
-import 'package:pomodo_app/screens/pomodoro_screen.dart';
+// import 'package:pomodo_app/screens/pomodoro_screen.dart'; // No se necesita aquí directamente
 import 'package:pomodo_app/screens/onboarding/onboarding_welcome.dart';
 import 'package:pomodo_app/theme/app_theme.dart';
-import 'package:provider/provider.dart' as provider;
+import 'package:provider/provider.dart' as provider; // Mantenemos el alias
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 
 // ✅ NUEVO: import del contenedor con bottom nav persistente
 import 'package:pomodo_app/screens/main_scaffold.dart';
+
+// ✅ PASO 4.1: Importar los nuevos providers
+import 'package:pomodo_app/providers/simple_timer_provider.dart';
+import 'package:pomodo_app/providers/stopwatch_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,19 +84,24 @@ class _MyAppState extends State<MyApp> {
       home = const OnboardingWelcome();
     } else if (_session != null) {
       // 🥈 2. Si completó el onboarding Y hay sesión iniciada → contenedor con bottom nav persistente
-      home = const MainScaffold(); // ← reemplaza a PomodoroScreen manteniendo la lógica
+      home = const MainScaffold(); // ← Usa MainScaffold que ahora contendrá FocusTimerTabs
     } else {
       // 🥉 3. Si completó el onboarding pero NO tiene sesión → Login
       home = const LoginScreen();
     }
 
     // 🔹 Ahora sí construimos toda la app normalmente
-    return provider.MultiProvider(
+    return provider.MultiProvider( // Usar el alias provider aquí
       providers: [
         provider.ChangeNotifierProvider(create: (_) => ThemeProvider()),
         provider.ChangeNotifierProvider(create: (_) => TimerProvider()),
+
+        // ✅ PASO 4.1: Añadir los nuevos providers al MultiProvider
+        provider.ChangeNotifierProvider(create: (_) => SimpleTimerProvider()),
+        provider.ChangeNotifierProvider(create: (_) => StopwatchProvider()),
+        // --------------------------------------------------------
       ],
-      child: provider.Consumer<ThemeProvider>(
+      child: provider.Consumer<ThemeProvider>( // Usar el alias provider aquí
         builder: (context, themeProvider, child) {
           return MaterialApp(
             title: 'Pomodō',
