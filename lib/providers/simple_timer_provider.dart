@@ -6,6 +6,7 @@ import 'dart:math'; // Para Random
 // ✅ 1. Importar los servicios
 import '../services/notification_service.dart';
 import '../services/audio_service.dart';
+import '../services/android_timer_notification_service.dart'; // <-- *** NUEVA LÍNEA ***
 
 class SimpleTimerProvider extends ChangeNotifier {
   // ✅ 2. Añadir instancias de los servicios
@@ -77,12 +78,23 @@ class SimpleTimerProvider extends ChangeNotifier {
     if (_isRunning || _remainingTimeSeconds == 0) return;
     _isRunning = true;
     _updateTip(); // Actualizar tip al iniciar
+    // *** NUEVO: Iniciar notificación Android ***
+    AndroidTimerNotificationService.start(formattedTime, "Timer", _isRunning);
+    // *** FIN NUEVO ***
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingTimeSeconds > 0) {
         _remainingTimeSeconds--;
+        // *** NUEVO: Actualizar notificación Android en cada tick ***
+        if (_isRunning) { // Solo si sigue corriendo
+          AndroidTimerNotificationService.update(formattedTime, _isRunning);
+        }
+        // *** FIN NUEVO ***
       } else {
         _timer?.cancel();
         _isRunning = false;
+        // *** NUEVO: Detener notificación Android ***
+        AndroidTimerNotificationService.stop();
+        // *** FIN NUEVO ***
 
         // ✅ 3. LLAMAR A LOS SERVICIOS AL TERMINAR
         _notificationService.showSimpleTimerNotification(
@@ -109,6 +121,9 @@ class SimpleTimerProvider extends ChangeNotifier {
     _timer?.cancel();
     _isRunning = false;
     _audioService.stopSound(); // ✅ 4. Detener sonido al pausar
+    // *** NUEVO: Actualizar notificación Android a pausado ***
+    AndroidTimerNotificationService.update(formattedTime, _isRunning, type: "Timer");
+    // *** FIN NUEVO ***
     _updateTip();
     notifyListeners();
   }
@@ -118,6 +133,9 @@ class SimpleTimerProvider extends ChangeNotifier {
     _isRunning = false;
     _remainingTimeSeconds = _initialDurationSeconds;
     _audioService.stopSound(); // ✅ 4. Detener sonido al resetear
+    // *** NUEVO: Detener notificación Android ***
+    AndroidTimerNotificationService.stop();
+    // *** FIN NUEVO ***
     _updateTip();
     notifyListeners();
   }
@@ -126,6 +144,14 @@ class SimpleTimerProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     _audioService.dispose(); // ✅ 5. Liberar recursos de audio
+    // *** NUEVO: Detener notificación Android ***
+    AndroidTimerNotificationService.stop();
+    // *** FIN NUEVO ***
     super.dispose();
   }
+
+  // Variables placeholder para compatibilidad con la lógica de notificación/sonido existente
+  // (Si ya tenías control global para esto, úsalo, si no, puedes añadirlas)
+  bool get _notificationsEnabled => true; // Asume habilitado
+  bool get _soundEnabled => true; // Asume habilitado
 }

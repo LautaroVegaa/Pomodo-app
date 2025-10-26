@@ -10,6 +10,7 @@ import '../services/pomodoro_data_service.dart';
 // ✅ Nuevos imports para los servicios
 import '../services/notification_service.dart';
 import '../services/audio_service.dart';
+import '../services/android_timer_notification_service.dart'; // <-- AÑADIR ESTA LÍNEA
 
 // Enum PomodoroPhase sin cambios
 enum PomodoroPhase { work, shortBreak, longBreak }
@@ -86,9 +87,7 @@ class TimerProvider extends ChangeNotifier {
      // No notificamos aquí directamente
   }
 
-  // === ELIMINADO ===
-  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = ...;
-  // final AudioPlayer _audioPlayer = ...;
+  // === ELIMINADO === (No se muestran eliminaciones, solo código final)
 
   // === ESTADO CENTRALIZADO DE ESTADÍSTICAS === (Sin cambios)
   int _todaySessions = 0;
@@ -223,11 +222,6 @@ class TimerProvider extends ChangeNotifier {
      }
   }
 
-
-  // === ELIMINADO ===
-  // Future<void> _initializeNotifications() async { ... }
-  // Future<void> _showNotificationAndPlaySound(PomodoroPhase phase) async { ... }
-
   // === Métodos de Estadísticas === (Sin cambios)
   Future<void> _updateAggregatedStatsAndStreak() async { /* ... sin cambios ... */
     final aggregatedStats = await _dataService.loadAggregatedStats();
@@ -241,10 +235,10 @@ class TimerProvider extends ChangeNotifier {
     _weeklyDataMap = Map<String, int>.from(aggregatedStats['weekly_data'] ?? {});
     _currentStreak = streak;
     _calculateDerivedStats();
-    _currentCycle = _todaySessions + 1;
+    _currentCycle = _todaySessions + 1; // Actualiza el ciclo basado en las sesiones de hoy
     final now = DateTime.now().toLocal();
     _lastUpdatedDate = DateTime(now.year, now.month, now.day);
-    notifyListeners();
+    notifyListeners(); // Notifica después de actualizar todo
   }
   void _calculateDerivedStats() { /* ... sin cambios ... */
     int bestMins = 0; String bestD = ''; int totalWeekMins = 0;
@@ -253,10 +247,23 @@ class TimerProvider extends ChangeNotifier {
       if (minutes > bestMins) { bestMins = minutes; bestD = dayKey; }
     });
     _bestDayMinutes = bestMins; _bestDay = bestD;
-    _weeklyAverage = totalWeekMins / 7.0; _dailyAverage = _weeklyAverage;
+    _weeklyAverage = totalWeekMins / 7.0; _dailyAverage = _weeklyAverage; // Asigna dailyAverage también
   }
 
-  // --- Lógica del temporizador --- (Modificada la parte del fin de ciclo)
+  // *** NUEVO: Helper para obtener el nombre de la fase actual ***
+  String _getCurrentPhaseName() {
+    switch (_currentPhase) {
+      case PomodoroPhase.work:
+        return "Pomodoro"; // Puedes ajustar este texto si quieres
+      case PomodoroPhase.shortBreak:
+        return "Descanso Corto";
+      case PomodoroPhase.longBreak:
+        return "Descanso Largo";
+    }
+  }
+  // *** FIN NUEVO ***
+
+  // --- Lógica del temporizador --- (Modificada la parte del fin de ciclo y llamadas al servicio Android)
   void startStopTimer() {
     final now = DateTime.now().toLocal();
     final today = DateTime(now.year, now.month, now.day);
@@ -265,120 +272,148 @@ class TimerProvider extends ChangeNotifier {
        _updateAggregatedStatsAndStreak();
     }
 
-    if (_isRunning) {
+    if (_isRunning) { // --- PAUSANDO ---
       _timer?.cancel();
       _isRunning = false;
       _updateMotivationalPhrase();
-    } else {
+      // *** NUEVO: Actualizar notificación a estado pausado ***
+      AndroidTimerNotificationService.update(formattedTime, _isRunning, type: _getCurrentPhaseName());
+      // *** FIN NUEVO ***
+    } else { // --- INICIANDO ---
       _isRunning = true;
       _updateMotivationalPhrase();
+      // *** NUEVO: Iniciar notificación ***
+      AndroidTimerNotificationService.start(formattedTime, _getCurrentPhaseName(), _isRunning);
+      // *** FIN NUEVO ***
+
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingTimeSeconds > 0) {
           _remainingTimeSeconds--;
-           if (_isRunning) notifyListeners();
-        } else { // Tiempo llegó a 0
+           // *** NUEVO: Actualizar notificación en cada tick ***
+           if (_isRunning) { // Solo si sigue corriendo
+             AndroidTimerNotificationService.update(formattedTime, _isRunning);
+           }
+           // *** FIN NUEVO ***
+           if (_isRunning) notifyListeners(); // Notifica UI Flutter si sigue corriendo
+        } else { // --- TIEMPO TERMINÓ ---
            _timer?.cancel();
            _isRunning = false;
+           // *** NUEVO: Detener notificación ***
+           AndroidTimerNotificationService.stop();
+           // *** FIN NUEVO ***
 
-           // ✅ LLAMADAS A LOS SERVICIOS DE NOTIFICACIÓN Y AUDIO
+           // Llamadas existentes a notificaciones locales y audio
            if (_notificationsEnabled) {
              _notificationService.showPomodoroNotification(
                phase: _currentPhase,
-               currentCycle: _currentCycle, // Usa el ciclo actual calculado por stats
+               currentCycle: _currentCycle,
                longBreakInterval: _longBreakInterval,
              );
            }
            if (_soundEnabled) {
              _audioService.playPomodoroSound();
            }
-           // ✅ FIN LLAMADAS A SERVICIOS
 
+          // Lógica existente para guardar sesión y pasar a la siguiente fase
           bool shouldUpdateStats = false;
           if (_currentPhase == PomodoroPhase.work) {
              shouldUpdateStats = true;
              _dataService.savePomodoroSession(_workDurationMinutes, "work").then((_) {
-                 _updateAggregatedStatsAndStreak().then((_){
-                    _handleNextPhase(); // Manejar fase DESPUÉS de actualizar stats
+                 // Asegúrate que _updateAggregatedStatsAndStreak se complete ANTES de _handleNextPhase
+                 _updateAggregatedStatsAndStreak().then((_) {
+                    _handleNextPhase();
                  });
              }).catchError((e) {
                  print("Error guardando sesión: $e. Pasando a siguiente fase.");
-                 _handleNextPhase(); // Manejar fase aunque falle el guardado
+                 _handleNextPhase();
              });
           }
 
-          // Si no era fase de trabajo (era descanso), manejar la siguiente fase directamente
           if (!shouldUpdateStats) {
              _handleNextPhase();
           }
-          // Si era fase de trabajo, _handleNextPhase se llamará en el .then()
         }
       });
     }
-    notifyListeners();
+    notifyListeners(); // Notifica cambio inicial de isRunning
   }
 
 
-  void skipPhase() { // Añadido stopSound
+  void skipPhase() { // Añadido stopSound y stop de notificación Android
     _timer?.cancel();
     _isRunning = false;
     _audioService.stopSound(); // Detener sonido al saltar
-    _handleNextPhase();
+    // *** NUEVO: Detener notificación Android ***
+    AndroidTimerNotificationService.stop();
+    // *** FIN NUEVO ***
+    _handleNextPhase(); // Esto puede iniciar la siguiente fase/notificación si hay auto-inicio
   }
 
 
-  void _handleNextPhase() { // Sin cambios en sí mismo
-    _isRunning = false;
+  void _handleNextPhase() { // Lógica para iniciar/detener notificación Android añadida
+    _isRunning = false; // Estado inicial es pausado
     _timer?.cancel();
     PomodoroPhase phaseBeforeChange = _currentPhase;
 
+    // Lógica existente para determinar la siguiente fase
     if (phaseBeforeChange == PomodoroPhase.work) {
-      if (_currentCycle % _longBreakInterval == 0) {
-        _currentPhase = PomodoroPhase.longBreak;
-        _remainingTimeSeconds = _longBreakDurationMinutes * 60;
-      } else {
-        _currentPhase = PomodoroPhase.shortBreak;
-        _remainingTimeSeconds = _shortBreakDurationMinutes * 60;
-      }
+      _currentPhase = (_currentCycle % _longBreakInterval == 0)
+          ? PomodoroPhase.longBreak
+          : PomodoroPhase.shortBreak;
+      _remainingTimeSeconds = (_currentPhase == PomodoroPhase.longBreak)
+          ? _longBreakDurationMinutes * 60
+          : _shortBreakDurationMinutes * 60;
     } else {
       _currentPhase = PomodoroPhase.work;
+      // IMPORTANTE: Incrementar el ciclo aquí SOLO si venimos de un descanso completado
+      // Si actualizamos stats al final de 'work', _currentCycle ya estará bien.
+      // Si no, necesitarías incrementarlo aquí condicionalmente.
+      // Como ahora _updateAggregatedStatsAndStreak() actualiza _currentCycle, lo dejamos.
       _remainingTimeSeconds = _workDurationMinutes * 60;
     }
-    _updateMotivationalPhrase();
+    _updateMotivationalPhrase(); // Actualiza la frase motivacional
 
+    // Lógica existente para determinar si debe auto-iniciar
     bool shouldAutoStart = (phaseBeforeChange == PomodoroPhase.work && _autoStartBreaks) ||
                            (phaseBeforeChange != PomodoroPhase.work && _autoStartPomodoros);
 
     if (shouldAutoStart) {
-      startStopTimer();
+      startStopTimer(); // Llama a startStopTimer que ya maneja el inicio de la notificación Android
     } else {
-      notifyListeners();
+      // *** NUEVO: Asegurarse de detener la notificación si no hay auto-inicio ***
+      // Esto es crucial si el ciclo anterior terminó y no queremos que quede la notificación vieja
+      AndroidTimerNotificationService.stop();
+      // *** FIN NUEVO ***
+      notifyListeners(); // Notifica a la UI de Flutter que cambió la fase/tiempo pero está pausado
     }
   }
 
 
-  void resetTimer() { // Añadido stopSound
+  void resetTimer() { // Añadido stopSound y stop de notificación Android
     _timer?.cancel();
     _isRunning = false;
     _currentPhase = PomodoroPhase.work;
     _remainingTimeSeconds = _workDurationMinutes * 60;
     _updateMotivationalPhrase();
     _audioService.stopSound(); // Detener sonido al resetear
+    // *** NUEVO: Detener notificación Android ***
+    AndroidTimerNotificationService.stop();
+    // *** FIN NUEVO ***
     notifyListeners();
    }
 
 
-  // --- Inicialización --- (Modificada para inicializar NotificationService)
+  // --- Inicialización --- (Sin cambios respecto a la versión anterior con servicios)
   TimerProvider() {
     _initializeProvider();
   }
 
   Future<void> _initializeProvider() async {
     await _loadDurationsFromPrefs();
-    // ✅ Inicializar servicio de notificaciones
-    await _notificationService.initialize();
+    await _notificationService.initialize(); // Inicializa notificaciones locales
     await _updateAggregatedStatsAndStreak();
     _updateMotivationalPhrase();
-    // notifyListeners() ya está en _updateAggregatedStatsAndStreak
+    // notifyListeners() se llama dentro de _updateAggregatedStatsAndStreak
   }
 
   // refreshStats() sin cambios
@@ -386,11 +421,15 @@ class TimerProvider extends ChangeNotifier {
      _updateAggregatedStatsAndStreak();
   }
 
-  // dispose() modificado para incluir audioService.dispose()
+  // dispose() sin cambios respecto a la versión anterior con servicios
   @override
   void dispose() {
     _timer?.cancel();
-    _audioService.dispose(); // ✅ Liberar recursos del AudioService
+    _audioService.dispose(); // Libera recursos de audio
+    // *** NUEVO: Detener notificación Android si la app se cierra ***
+    // Aunque esto es mejor manejarlo con AppLifecycleObserver, una parada aquí ayuda.
+    AndroidTimerNotificationService.stop();
+    // *** FIN NUEVO ***
     super.dispose();
    }
 }

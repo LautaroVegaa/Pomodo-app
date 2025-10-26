@@ -47,7 +47,12 @@
                 android:name=".FocusService"
                 android:exported="false"
                 android:foregroundServiceType="mediaProjection|dataSync" />
-    </application>
+
+                <service
+                    android:name=".TimerService"
+                    android:exported="false"
+                    android:foregroundServiceType="shortService" />
+        </application>
 
     <!-- ✅ Permite consultar apps instaladas para el plugin device_apps -->
     <queries>

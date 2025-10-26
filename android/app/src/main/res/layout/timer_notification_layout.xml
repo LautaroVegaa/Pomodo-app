@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notification_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:background="@drawable/notification_bg">
+
+    <!-- Ícono -->
+    <ImageView
+        android:id="@+id/notification_icon"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/ic_hourglass"
+        android:tint="@android:color/white"
+        android:contentDescription="Timer Icon" />
+
+    <!-- Contenedor principal de texto -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/notification_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pomodoro"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:alpha="0.8" />
+
+        <!-- Tiempo -->
+        <TextView
+            android:id="@+id/notification_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25:00"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <!-- Etiqueta tipo (Work, Break, Focus) -->
+    <TextView
+        android:id="@+id/tag_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Work"
+        android:textColor="#B8F397"
+        android:textSize="13sp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginEnd="6dp"
+        android:background="@drawable/tag_bg" />
+
+    <!-- Botón Play/Pause -->
+    <ImageButton
+        android:id="@+id/notification_button_pause_play"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/ic_media_pause"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Pause/Play"
+        android:tint="@android:color/white"
+        android:scaleType="centerInside" />
+
+    <!-- Botón Stop -->
+    <ImageButton
+        android:id="@+id/notification_button_stop"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@drawable/ic_stop"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Stop"
+        android:tint="@android:color/white"
+        android:layout_marginStart="4dp"
+        android:scaleType="centerInside" />
+</LinearLayout>
